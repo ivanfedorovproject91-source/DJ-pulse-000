@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+__pycache__/
+.pytest_cache/
+*.pyc
+# генерируется при публикации из data/public
+frontend/public/data/
+# демо-набор — только для разработки интерфейса, в репозиторий не попадает
+frontend/public/demo-data/
+.wrangler/

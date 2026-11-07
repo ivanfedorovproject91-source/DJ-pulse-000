@@ -1,0 +1,65 @@
+name: Deploy app
+
+# Публикует приложение на GitHub Pages: собирает frontend и кладёт в него актуальные данные из data/public.
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["frontend/**", ".github/workflows/deploy.yml"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main   # берём свежий main, включая данные, закоммитённые сборщиком
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Copy fresh data into the app
+        run: |
+          mkdir -p frontend/public/data
+          cp data/public/*.json frontend/public/data/ 2>/dev/null || echo "Данных пока нет — приложение покажет подсказку"
+
+      - name: Build
+        working-directory: frontend
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Guard — demo data must never reach production
+        run: |
+          if [ -e frontend/dist/demo-data ]; then echo "demo-data попали в сборку"; exit 1; fi
+          if grep -rl '"demo":true' frontend/dist/data 2>/dev/null; then echo "demo-флаг в боевых данных"; exit 1; fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: frontend/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
