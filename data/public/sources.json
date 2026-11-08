@@ -1,64 +1,63 @@
 {
  "deezer": {
-  "artists_loaded": 145,
-  "last_attempt": "2026-11-08T10:12:08Z",
-  "last_success": "2026-11-08T10:12:08Z",
+  "artists_loaded": 261,
+  "last_attempt": "2026-11-08T10:56:01Z",
+  "last_success": "2026-11-08T10:56:01Z",
   "message": null,
   "status": "ok",
   "tracks": 50
  },
  "lastfm": {
-  "artists_loaded": 201,
-  "genres_loaded": 18,
-  "last_attempt": "2026-11-08T10:11:43Z",
-  "last_success": "2026-11-08T10:11:43Z",
+  "artists_loaded": 387,
+  "genres_loaded": 72,
+  "last_attempt": "2026-11-08T10:54:12Z",
+  "last_success": "2026-11-08T10:54:12Z",
   "message": null,
   "status": "ok"
  },
  "musicbrainz": {
-  "artists_cached": 278,
-  "last_attempt": "2026-11-08T10:12:43Z",
-  "last_success": "2026-11-08T10:12:43Z",
+  "artists_cached": 319,
+  "last_attempt": "2026-11-08T10:59:01Z",
+  "last_success": "2026-11-08T10:59:01Z",
   "message": null,
-  "releases": 96,
+  "releases": 218,
   "status": "ok"
  },
  "rss:attack": {
-  "last_attempt": "2026-11-08T10:12:44Z",
-  "last_success": "2026-11-08T10:12:44Z",
+  "last_attempt": "2026-11-08T11:00:38Z",
+  "last_success": "2026-11-08T11:00:38Z",
   "message": null,
   "name": "Attack Magazine",
   "status": "ok"
  },
  "rss:djmag": {
-  "last_attempt": "2026-11-08T10:12:43Z",
-  "last_success": "2026-11-08T10:12:43Z",
+  "last_attempt": "2026-11-08T11:00:38Z",
+  "last_success": "2026-11-08T11:00:38Z",
   "message": null,
   "name": "DJ Mag",
   "status": "ok"
  },
  "rss:mixmag": {
-  "last_attempt": "2026-11-08T10:12:43Z",
-  "last_success": "2026-11-08T10:12:43Z",
+  "last_attempt": "2026-11-08T11:00:37Z",
+  "last_success": "2026-11-08T11:00:37Z",
   "message": null,
   "name": "Mixmag",
   "status": "ok"
  },
- "rss:residentadvisor": {
-  "last_attempt": "2026-11-08T10:12:44Z",
-  "message": "HTTP 404 от ra.co: \r\n\r\n<!DOCTYPE html>\r\n\r\n<html>\r\n<head>\r\n\t<title>RA. 404.</title>\r\n\t<style type=\"text/css\">\r\n\t\tBODY {font-family: Arial, Verdana; font-size: 12px; background-colo",
-  "name": "Resident Advisor",
-  "status": "error"
+ "ticketmaster": {
+  "last_attempt": "2026-11-08T11:00:37Z",
+  "message": "ключ TICKETMASTER_API_KEY не задан — события не показываются (необязательный источник)",
+  "status": "disabled"
  },
  "wikipedia": {
-  "genres_loaded": 18,
-  "last_attempt": "2026-11-08T10:10:19Z",
-  "last_success": "2026-11-08T10:10:19Z",
+  "genres_loaded": 68,
+  "last_attempt": "2026-11-08T10:48:23Z",
+  "last_success": "2026-11-08T10:48:23Z",
   "message": null,
   "status": "ok"
  },
  "youtube": {
-  "last_attempt": "2026-11-08T10:12:08Z",
+  "last_attempt": "2026-11-08T10:56:01Z",
   "message": "ключ YOUTUBE_API_KEY не задан — источник отключён (необязательный)",
   "status": "disabled"
  }
