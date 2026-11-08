@@ -17,6 +17,7 @@ export default function Djs({ data, go }: { data: AppData; go: (p: string) => vo
   const [genre, setGenre] = useState('');
   const [country, setCountry] = useState('');
   const [sort, setSort] = useState<Sort>('pop');
+  const [archive, setArchive] = useState(false);
 
   const countries = useMemo(() => {
     const names = new Map(data.countries.map((c) => [c.code, lang === 'ru' ? c.name_ru : c.name_en]));
@@ -26,6 +27,7 @@ export default function Djs({ data, go }: { data: AppData; go: (p: string) => vo
 
   const list = useMemo(() => {
     let arr = data.artists.filter((a) => {
+      if (!archive && a.ended) return false;
       if (tab === 'rising' && !a.rising) return false;
       if (tab === 'russia' && a.country !== 'RU') return false;
       if (genre && !a.genres.includes(genre)) return false;
@@ -38,7 +40,7 @@ export default function Djs({ data, go }: { data: AppData; go: (p: string) => vo
       ? (b.growth_30d ?? -Infinity) - (a.growth_30d ?? -Infinity)
       : (b.popularity ?? -1) - (a.popularity ?? -1));
     return arr;
-  }, [data.artists, tab, genre, country, q, sort]);
+  }, [data.artists, tab, genre, country, q, sort, archive]);
 
   return (
     <>
@@ -72,7 +74,11 @@ export default function Djs({ data, go }: { data: AppData; go: (p: string) => vo
           </select>
         </label>
       </div>
-      <p className="note" style={{ marginBottom: 12 }}>{t('djs.pop.hint')}</p>
+      <p className="note" style={{ marginBottom: 8 }}>{t('djs.pop.hint')}</p>
+      <label className="note" style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+        <input type="checkbox" checked={archive} onChange={(e) => setArchive(e.target.checked)} /> {t('djs.archive')}
+      </label>
+      {tab === 'russia' && <p className="note" style={{ marginBottom: 12 }}>{t('djs.russia.note')} ({list.length})</p>}
 
       <div className="panel">
         {list.length ? list.slice(0, 80).map((a, i) => (

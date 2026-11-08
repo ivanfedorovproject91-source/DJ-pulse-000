@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import LineChart from '../charts/LineChart';
 import { SERIES } from '../charts/palette';
 import { ArtistRow, GenreRow, NewsRow, ReleaseRow, TrackRow } from '../components/Rows';
-import { Empty, SecHead, SourceTags, StatusBadge } from '../components/ui';
+import { Empty, SecHead, SourceTags, StatusBadge, Sheet } from '../components/ui';
+import { readStore, writeStore } from '../services/storage';
 import { useAudio } from '../hooks/useAudio';
 import { useI18n } from '../services/i18n';
 import { fmtPct } from '../services/format';
@@ -18,10 +19,21 @@ export default function Dashboard({ data, go }: Props) {
   const show = (id: SectionId) => !prefs.hidden.includes(id);
   const gname = useMemo(() => new Map(data.genres.map((g) => [g.id, g.name])), [data.genres]);
 
-  const topGenres = useMemo(
-    () => data.genres.filter((g) => g.changes.d30 != null).sort((a, b) => (b.changes.d30 as number) - (a.changes.d30 as number)).slice(0, 5),
-    [data.genres],
-  );
+  // Растущие жанры — только с заметным объёмом интереса: рост «с нуля» (+500% от пары просмотров) не показатель.
+  const topGenres = useMemo(() => {
+    const withD = data.genres.filter((g) => g.changes.d30 != null && g.score != null);
+    const scores = withD.map((g) => g.score as number).sort((a, b) => a - b);
+    const median = scores.length ? scores[Math.floor(scores.length / 2)] : 0;
+    return withD.filter((g) => (g.score as number) >= median).sort((a, b) => (b.changes.d30 as number) - (a.changes.d30 as number)).slice(0, 5);
+  }, [data.genres]);
+  const [picks, setPicks] = useState<string[]>(() => readStore<{ ids: string[] }>('djpulse.chartpicks', { ids: [] }).ids.slice(0, 6));
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const savePicks = (ids: string[]) => { setPicks(ids); writeStore('djpulse.chartpicks', { ids }); };
+  const chartGenres = useMemo(() => {
+    const chosen = picks.map((id) => data.genres.find((g) => g.id === id)).filter((g): g is NonNullable<typeof g> => !!g);
+    if (chosen.length) return chosen;
+    return [...data.genres].filter((g) => g.score != null).sort((a, b) => (b.score as number) - (a.score as number)).slice(0, 5);
+  }, [picks, data.genres]);
   const rising = useMemo(
     () => data.artists.filter((a) => a.rising).sort((a, b) => (b.growth_30d ?? 0) - (a.growth_30d ?? 0)).slice(0, 5),
     [data.artists],
@@ -93,12 +105,12 @@ export default function Dashboard({ data, go }: Props) {
 
       {show('chart') && (
         <section className="sec">
-          <SecHead title={t('section.chart')} note={t('top5')} />
+          <SecHead title={t('section.chart')} note={picks.length ? t('chart.mine') : t('top5')} action={{ label: t('chart.pick'), onClick: () => setPickerOpen(true) }} />
           <div className="panel pad">
             <LineChart
               defaultMode="pct"
               defaultPeriod={90}
-              series={topGenres.map((g, i) => ({ id: g.id, label: g.name, color: SERIES[i % SERIES.length], points: g.history.wiki }))}
+              series={chartGenres.map((g, i) => ({ id: g.id, label: g.name, color: SERIES[i % SERIES.length], points: g.history.wiki }))}
             />
             <p className="note" style={{ marginTop: 8 }}>{t('genre.history.note')}</p>
           </div>
@@ -161,6 +173,25 @@ export default function Dashboard({ data, go }: Props) {
           <SecHead title={t('section.news')} />
           <div className="panel">{data.news.slice(0, 4).map((n) => <NewsRow key={n.link} n={n} />)}</div>
         </section>
+      )}
+      {pickerOpen && (
+        <Sheet title={t('chart.pick.title')} onClose={() => setPickerOpen(false)}>
+          <p className="note" style={{ marginBottom: 8 }}>{t('chart.pick.hint')}</p>
+          <div className="pick-list">
+            {[...data.genres].filter((g) => g.history.wiki.length > 0).sort((a, b) => a.name.localeCompare(b.name)).map((g) => {
+              const on = picks.includes(g.id);
+              return (
+                <button key={g.id} className="pick-row" aria-pressed={on}
+                  onClick={() => savePicks(on ? picks.filter((x) => x !== g.id) : picks.length >= 6 ? picks : [...picks, g.id])}>
+                  <span className="sw" style={{ background: on ? SERIES[picks.indexOf(g.id) % SERIES.length] : 'transparent' }} />
+                  <span className="grow">{g.name}</span>
+                </button>
+              );
+            })}
+          </div>
+          <button className="btn ghost sm" style={{ marginBottom: 8 }} onClick={() => savePicks([])}>{t('chart.pick.reset')}</button>
+          <button className="btn" onClick={() => setPickerOpen(false)}>OK</button>
+        </Sheet>
       )}
     </>
   );

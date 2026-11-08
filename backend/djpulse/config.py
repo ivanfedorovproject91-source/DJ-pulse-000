@@ -214,6 +214,16 @@ class Country:
     name_ru: str
 
 
+# Теги, по которым артист считается электронным. Нужны, чтобы в рейтинг не попадали поп- и хип-хоп-исполнители.
+ELECTRONIC_TAGS = frozenset({
+    "electronic", "electronica", "edm", "electro", "dj", "house", "techno", "trance", "dubstep",
+    "drum and bass", "dnb", "drum n bass", "breaks", "breakbeat", "garage", "idm", "ambient", "downtempo", "chillout",
+    "trip hop", "disco", "nu disco", "synthwave", "eurodance", "hardstyle", "hardcore", "gabber", "psytrance", "goa",
+    "bass", "future bass", "trap edm", "jungle", "grime", "phonk", "amapiano", "gqom", "baile funk", "glitch", "minimal",
+    "deep house", "tech house", "progressive house", "electro house", "big room", "psychedelic trance",
+    "dark ambient", "ebm", "vocal trance", "uk garage", "afro house", "melodic techno",
+})
+
 COUNTRIES: tuple[Country, ...] = (
     Country("RU", "Russian Federation", "Россия"),
     Country("US", "United States", "США"),
@@ -273,7 +283,7 @@ class Settings:
     wiki_backfill_days: int = 365
     history_keep_days: int = 800
     top_artists_per_tag: int = 25
-    max_registry_artists: int = 400
+    max_registry_artists: int = 600
     mb_discover_ru_limit: int = 40
     mb_discover_genres_per_run: int = 25   # российские артисты ищутся по части жанров за запуск (по кругу)
     preview_lookups_per_run: int = 450      # поиск превью на Deezer для треков Last.fm

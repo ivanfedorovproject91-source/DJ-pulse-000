@@ -307,3 +307,13 @@ def test_events_source_down_keeps_previous_events(dirs):
     run(dirs, FakeHttp(TODAY, fail_hosts=("ticketmaster.com",)), env=env, today=TODAY + timedelta(days=1))
     assert [e["id"] for e in load(dirs, "events.json")["items"]] == ["ev1"]
     assert load(dirs, "sources.json")["ticketmaster"]["status"] == "error"
+
+
+def test_is_electronic_filters_pop_and_accepts_dance_music():
+    from djpulse.pipeline import is_electronic
+    assert is_electronic(["deep house", "pop"], False)
+    assert is_electronic(["pop", "electronic"], False)
+    assert not is_electronic(["pop", "rnb", "soul", "electronic"], False)
+    assert not is_electronic(["pop", "rnb", "soul", "seen live", "house"], False)  # единственный электронный тег где-то в хвосте
+    assert not is_electronic(["pop", "rnb"], True)
+    assert is_electronic([], True) and not is_electronic([], False)

@@ -14,6 +14,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from . import config
+from .config import ELECTRONIC_TAGS
 from .analytics import insights as insights_mod
 from .analytics import trends
 from .collectors import deezer, lastfm, musicbrainz, rss, ticketmaster, wikipedia, youtube
@@ -51,6 +52,17 @@ def prev_value(series: dict, today: date, max_age: int = 3):
     return best[1] if best else None
 
 
+_ELECTRONIC_NORM = frozenset(norm(x) for x in ELECTRONIC_TAGS)
+
+
+def is_electronic(tags: list[str], from_genre_source: bool) -> bool:
+    """Электронный ли артист: по тегам (MusicBrainz + Last.fm). Без тегов — доверяем источнику, из которого он пришёл."""
+    if not tags:
+        return from_genre_source
+    hits = [i for i, t in enumerate(tags) if norm(t) in _ELECTRONIC_NORM]
+    return bool(hits) and (hits[0] < 3 or len(hits) >= 2)
+
+
 class Pipeline:
     def __init__(self, env: dict, http: Http | None = None, today: date | None = None,
                  public_dir: Path | None = None, data_dir: Path | None = None):
@@ -59,6 +71,7 @@ class Pipeline:
         self.today = today or utcnow().date()
         self.public = public_dir or config.PUBLIC_DIR
         data = data_dir or config.DATA_DIR
+        self.data_dir = data
         self.cache_dir = data / "cache"
         self.settings = config.SETTINGS
         self.genres = config.load_genres()
@@ -223,7 +236,13 @@ class Pipeline:
         for t in getattr(self, "dz_tracks", []):
             add(t["artist"], deezer_id=t.get("artist_deezer_id"), w=2)
         for k, c in read_json(self.cache_dir / "ru_discovered.json", {}).items():
-            add(c["name"], mbid=c.get("mbid"), w=3)
+            add(c["name"], mbid=c.get("mbid"), w=8)
+        # Ручной реестр (data/ru_registry.json): артисты, которых автор проекта знает и которым доверяет.
+        reg = read_json(self.data_dir / "ru_registry.json", {})
+        for item in (reg.get("artists") or []) if isinstance(reg, dict) else []:
+            name = item.get("name") if isinstance(item, dict) else item
+            if isinstance(name, str) and name.strip():
+                add(name.strip(), mbid=(item.get("mbid") if isinstance(item, dict) else None), w=12)
         return cands
 
     def step_discover_ru(self) -> None:
@@ -234,7 +253,7 @@ class Pipeline:
             n = min(self.settings.mb_discover_genres_per_run, len(gs))
             off = (self.today.toordinal() * n) % len(gs)
             for g in [gs[(off + i) % len(gs)] for i in range(n)]:  # часть жанров за запуск, по кругу
-                found = musicbrainz.discover_by_country(self.http, "RU", g.mb_tag, 10)
+                found = musicbrainz.discover_by_country(self.http, "RU", g.mb_tag, 25)
                 for a in found:
                     if a["score"] >= 70:
                         cache.setdefault(norm(a["name"]), {"name": a["name"], "mbid": a["mbid"]})
@@ -508,12 +527,15 @@ class Pipeline:
 
             if not metrics and not a["country"]:
                 continue  # о таком артисте нечего показать — не засоряем рейтинги
+            electronic = is_electronic(a["tags"], bool(a["_lf_genres"]))
+            if not electronic:
+                continue  # поп/хип-хоп и т. п. — не электронная сцена, в рейтинги не берём
             result.append({
                 "id": a["id"], "name": a["name"], "country": a["country"], "country_source": a["country_source"],
                 "genres": sorted(gids), "photo": a["photo"], "links": {k: v for k, v in a["links"].items() if v},
                 "metrics": metrics, "popularity": popularity, "n_sources": len(srcs), "sources": srcs,
                 "growth_30d": growth30, "growth_90d": growth90, "signals": signals, "rising": rising,
-                "ended": bool(a.get("ended")), "end_year": a.get("end_year"),
+                "ended": bool(a.get("ended")), "end_year": a.get("end_year"), "tags": a["tags"][:6],
                 "growth_sources": sorted({s["source"] for s in signals if s["d30"] is not None}),
                 "history": hist_out,
             })
