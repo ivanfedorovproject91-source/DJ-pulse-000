@@ -3,13 +3,13 @@
   "artists": 539,
   "genres": 114,
   "news": 21,
-  "releases": 135,
-  "tracks": 1650
+  "releases": 359,
+  "tracks": 1008
  },
  "data_date": "2026-11-08",
  "demo": false,
  "errors": [],
- "generated_at": "2026-11-08T17:36:14Z",
+ "generated_at": "2026-11-08T18:55:27Z",
  "history_days_max": 366,
  "notes": [
   "Melodic House: статья «Progressive house» уже занята жанром Progressive House — тренд не считается",
@@ -39,9 +39,7 @@
   "Organic Downtempo: нет отдельной статьи в Wikipedia — тренд не считается",
   "Drift Phonk: статья «Phonk» уже занята жанром Phonk — тренд не считается",
   "Afro / Tribal Dance: нет отдельной статьи в Wikipedia — тренд не считается",
-  "Psychedelic Bass: нет отдельной статьи в Wikipedia — тренд не считается",
-  "musicbrainz: musicbrainz.org: недоступен (HTTP 503 от musicbrainz.org)",
-  "lastfm artist MC ORSEN: ws.audioscrobbler.com: ответ не JSON"
+  "Psychedelic Bass: нет отдельной статьи в Wikipedia — тренд не считается"
  ],
  "schema": 1,
  "status": "ok"
