@@ -4,7 +4,9 @@ import Donut, { type Slice } from '../charts/Donut';
 import LineChart from '../charts/LineChart';
 import { SERIES } from '../charts/palette';
 import { GenreRow } from '../components/Rows';
-import { Empty, SecHead } from '../components/ui';
+import Heatmap from '../charts/Heatmap';
+import { Empty, SecHead, Seg, Sheet } from '../components/ui';
+import { buildHeatmap } from '../services/heatmap';
 import { haptic } from '../services/telegram';
 import { useI18n, type Key } from '../services/i18n';
 import { fmtPct } from '../services/format';
@@ -13,17 +15,29 @@ import type { AppData, Status } from '../types';
 
 interface Props { data: AppData; go: (p: string) => void }
 const STATUSES: (Status | 'all')[] = ['all', 'rising', 'emerging', 'stable', 'declining'];
+const FAMILIES = ['house', 'techno', 'trance', 'bass', 'hard', 'disco', 'chill', 'global'];
 
 export default function Genres({ data, go }: Props) {
   const { t } = useI18n();
   const { prefs, toggleFav } = usePrefs();
   const [status, setStatus] = useState<Status | 'all'>('all');
+  const [family, setFamily] = useState('all');
+  const [q, setQ] = useState('');
+  const [onlyFav, setOnlyFav] = useState(false);
+  const [view, setView] = useState<'list' | 'heat'>('list');
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [compare, setCompare] = useState(false);
   // picks хранит «слот» цвета: цвет закреплён за жанром и не перекрашивается при снятии соседа
   const [picks, setPicks] = useState<{ id: string; slot: number }[]>([]);
 
   const sorted = useMemo(() => [...data.genres].sort((a, b) => (b.score ?? -1) - (a.score ?? -1)), [data.genres]);
-  const list = sorted.filter((g) => status === 'all' || g.status === status);
+  const needle = q.trim().toLowerCase();
+  const list = sorted.filter((g) => (status === 'all' || g.status === status)
+    && (family === 'all' || g.family === family)
+    && (!onlyFav || prefs.favGenres.includes(g.id))
+    && (!needle || g.name.toLowerCase().includes(needle)));
+  const present = FAMILIES.filter((f) => data.genres.some((g) => g.family === f));
+  const heat = useMemo(() => buildHeatmap(sorted.filter((g) => family === 'all' || g.family === family), data.meta.data_date), [sorted, family, data.meta.data_date]);
 
   const slices = useMemo<Slice[]>(() => {
     const withLevel = sorted.filter((g) => g.level != null);
@@ -67,14 +81,11 @@ export default function Genres({ data, go }: Props) {
         ) : (
           <div className="panel pad">
             <p className="note" style={{ marginBottom: 10 }}>{t('genres.compare.pick')}</p>
-            <div className="chips" style={{ flexWrap: 'wrap', overflow: 'visible', margin: 0, padding: 0 }}>
-              {sorted.map((g) => {
-                const p = picks.find((x) => x.id === g.id);
-                return (
-                  <button key={g.id} className={`chip ${p ? 'on' : ''}`} style={{ marginBottom: 2 }} onClick={() => togglePick(g.id)} aria-pressed={!!p}>
-                    {p && <span className="sw" style={{ background: SERIES[p.slot], boxShadow: '0 0 0 2px #0e1011' }} />}{g.name}
-                  </button>
-                );
+            <button className="btn ghost sm" onClick={() => setPickerOpen(true)}>{t('genres.pick.btn')} · {t('genres.pick.n')}: {picks.length}</button>
+            <div className="chips" style={{ flexWrap: 'wrap', overflow: 'visible', margin: '8px 0 0', padding: 0 }}>
+              {picks.map((p) => {
+                const g = data.genres.find((x) => x.id === p.id)!;
+                return <button key={p.id} className="chip on" onClick={() => togglePick(p.id)}><span className="sw" style={{ background: SERIES[p.slot], boxShadow: '0 0 0 2px #0e1011' }} />{g.name} ✕</button>;
               })}
             </div>
             {picks.length >= 2 ? <LineChart series={cmpSeries} defaultMode="pct" defaultPeriod={90} /> : null}
@@ -99,7 +110,29 @@ export default function Genres({ data, go }: Props) {
       </section>
 
       <section className="sec">
+        <Seg value={view} options={[{ id: 'list', label: t('genres.view.list') }, { id: 'heat', label: t('genres.view.heat') }]} onChange={setView} />
+      </section>
+
+      <section className="sec">
+        <input className="input" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('genres.search')} aria-label={t('genres.search')} />
+        <div className="chips" style={{ marginTop: 10 }}>
+          <button className={`chip ${family === 'all' ? 'on' : ''}`} onClick={() => { setFamily('all'); haptic(); }}>{t('family.all')}</button>
+          {present.map((f) => <button key={f} className={`chip ${family === f ? 'on' : ''}`} onClick={() => { setFamily(f); haptic(); }}>{t(`family.${f}` as Key)}</button>)}
+        </div>
+      </section>
+
+      {view === 'heat' ? (
+        <section className="sec">
+          <SecHead title={t('heat.title')} />
+          <div className="panel">
+            {heat.length ? <Heatmap rows={heat} onOpen={(id) => go(`genres/${id}`)} /> : <Empty>{t('heat.none')}</Empty>}
+          </div>
+          <p className="note" style={{ marginTop: 8 }}>{t('heat.note')}</p>
+        </section>
+      ) : (
+      <section className="sec">
         <div className="chips">
+          <button className={`chip ${onlyFav ? 'on' : ''}`} onClick={() => { setOnlyFav(!onlyFav); haptic(); }}>★ {t('genres.favs')}</button>
           {STATUSES.map((s) => (
             <button key={s} className={`chip ${status === s ? 'on' : ''}`} onClick={() => { setStatus(s); haptic(); }}>
               {s === 'all' ? t('genres.filter.all') : t(`status.${s}` as Key)}
@@ -111,7 +144,27 @@ export default function Genres({ data, go }: Props) {
             <GenreRow key={g.id} g={g} onOpen={() => go(`genres/${g.id}`)} fav={prefs.favGenres.includes(g.id)} onFav={() => toggleFav('favGenres', g.id)} />
           )) : <Empty>{t('tracks.none')}</Empty>}
         </div>
+        <p className="note" style={{ marginBottom: 8 }}>{t('genres.count')}: {list.length}</p>
       </section>
+      )}
+
+      {pickerOpen && (
+        <Sheet title={t('genres.compare.pick')} onClose={() => setPickerOpen(false)}>
+          <div className="pick-list">
+            {sorted.filter((g) => g.history.wiki.length > 0).map((g) => {
+              const p = picks.find((x) => x.id === g.id);
+              return (
+                <button key={g.id} className="pick-row" aria-pressed={!!p} onClick={() => togglePick(g.id)}>
+                  <span className="sw" style={{ background: p ? SERIES[p.slot] : 'transparent' }} />
+                  <span className="grow">{g.name}</span>
+                  {g.family && <span className="note">{t(`family.${g.family}` as Key)}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <button className="btn" onClick={() => setPickerOpen(false)}>{t('genres.compare.done')}</button>
+        </Sheet>
+      )}
     </>
   );
 }

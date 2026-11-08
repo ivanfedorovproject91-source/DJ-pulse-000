@@ -84,7 +84,9 @@ def build_insights(genres: list[dict], artists: list[dict], tracks: list[dict],
                           "evidence": [{"label": "Позиция", "value": f"#{t['chart_position']}"}]})
 
     # «Главный тренд недели»: жанр с лучшим недельным изменением среди растущих
-    cand = [g for g in ready if g["status"] in ("rising", "emerging") and g["changes"]["d7"] is not None]
+    # Всплески (+100% и больше за неделю) в главный тренд не берём: чаще это разовый новостной повод, а не тренд.
+    cand = [g for g in ready if g["status"] in ("rising", "emerging") and g["changes"]["d7"] is not None
+            and 0 < g["changes"]["d7"] <= 100 and (g["changes"]["d30"] or 0) > 0]
     weekly = None
     if cand:
         g = max(cand, key=lambda g: g["changes"]["d7"])

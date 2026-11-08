@@ -11,6 +11,7 @@ export function Icon({ name, size = 22 }: { name: string; size?: number }) {
     djs: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="2.6" /><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2" /></>,
     tracks: <><path d="M9 18V5l11-2v13" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="17.5" cy="16" r="2.5" /></>,
     analytics: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>,
+    search: <><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></>,
     chevron: <path d="M9 5l7 7-7 7" />,
     back: <path d="M15 5l-7 7 7 7" />,
     star: <path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1.1 5.8L12 16.8 6.7 19.6l1.1-5.8L3.5 9.7l5.9-.8z" />,
@@ -30,7 +31,8 @@ export function Icon({ name, size = 22 }: { name: string; size?: number }) {
 
 export function Delta({ v, digits = 0 }: { v: number | null | undefined; digits?: number }) {
   if (v == null) return <span className="delta na" title="—">—</span>;
-  const cls = v > 0.05 ? 'up' : v < -0.05 ? 'down' : 'zero';
+  const r = Number(Math.abs(v).toFixed(digits));
+  const cls = r === 0 ? 'zero' : v > 0 ? 'up' : 'down';
   return <span className={`delta ${cls}`}>{cls === 'up' ? '▲' : cls === 'down' ? '▼' : '•'} {fmtPct(Math.abs(v), digits).replace('+', '')}</span>;
 }
 

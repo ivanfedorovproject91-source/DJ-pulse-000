@@ -5,7 +5,7 @@ import { telegramLang } from './telegram';
 export type Lang = 'ru' | 'en';
 export const SECTIONS = ['trend', 'favorites', 'chart', 'genres', 'rising', 'tracks', 'releases', 'insights', 'news'] as const;
 export type SectionId = (typeof SECTIONS)[number];
-export const DIGEST_SECTIONS = ['trend', 'genres', 'rising', 'russia', 'tracks', 'insights'] as const;
+export const DIGEST_SECTIONS = ['trend', 'mine', 'genres', 'rising', 'russia', 'tracks', 'insights'] as const;
 export type DigestSection = (typeof DIGEST_SECTIONS)[number];
 
 export interface Prefs {

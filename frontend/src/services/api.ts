@@ -17,7 +17,7 @@ export async function saveDigestPrefs(prefs: Prefs): Promise<SyncResult> {
     const res = await fetch(`${API}/api/prefs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `tma ${initData}` },
-      body: JSON.stringify({ digest: prefs.digest, lang: prefs.lang }),
+      body: JSON.stringify({ digest: { ...prefs.digest, favGenres: prefs.favGenres }, lang: prefs.lang }),
     });
     if (res.status === 401) return 'unauthorized';
     return res.ok ? 'ok' : 'error';

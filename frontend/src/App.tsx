@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import Onboarding, { wasOnboarded } from './components/Onboarding';
+import SearchSheet from './components/SearchSheet';
 import { BottomNav, DemoBanner, FreshnessBar, Topbar, type Tab, TABS } from './components/Shell';
 import { useBackButton, useRoute } from './hooks/useRoute';
 import Analytics, { type ATab } from './pages/Analytics';
@@ -24,6 +26,8 @@ export default function App() {
   const { t } = useI18n();
   const { parts, go, back } = useRoute();
   const [load, setLoad] = useState<Load>({ state: 'loading' });
+  const [searching, setSearching] = useState(false);
+  const [onboard, setOnboard] = useState(() => !wasOnboarded());
 
   const fetchData = useCallback(() => {
     setLoad({ state: 'loading' });
@@ -35,12 +39,12 @@ export default function App() {
   const nested = parts.length > 1 && !(parts[0] === 'analytics' && parts.length === 2);
   useBackButton(nested, back);
 
-  const aTab = (['insights', 'world', 'sources', 'settings'] as string[]).includes(parts[1]) ? (parts[1] as ATab) : 'insights';
+  const aTab = (['insights', 'world', 'labels', 'events', 'sources', 'settings'] as string[]).includes(parts[1]) ? (parts[1] as ATab) : 'insights';
   const goTab = (x: Tab) => { go(x === 'dashboard' ? '' : x); window.scrollTo({ top: 0 }); };
 
   return (
     <div className="app">
-      <Topbar onSettings={() => go('analytics/settings')} onBack={nested ? back : undefined} />
+      <Topbar onSearch={() => setSearching(true)} onSettings={() => go('analytics/settings')} onBack={nested ? back : undefined} />
       {load.state === 'loading' && <div className="loader"><div className="spin" /><span>{t('loading')}</span></div>}
       {(load.state === 'nodata' || load.state === 'error') && (
         <div className="loader">
@@ -61,6 +65,8 @@ export default function App() {
             : <Dashboard data={load.data} go={go} />}
         </main>
       )}
+      {load.state === 'ready' && searching && <SearchSheet data={load.data} onClose={() => setSearching(false)} go={go} />}
+      {load.state === 'ready' && onboard && <Onboarding data={load.data} onClose={() => setOnboard(false)} />}
       <BottomNav active={tab} onGo={goTab} />
     </div>
   );

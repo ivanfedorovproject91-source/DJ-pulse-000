@@ -39,7 +39,8 @@ export async function validateInitData(initData, botToken, { maxAgeSec = 86400, 
   return { ok: true, user };
 }
 
-export const SECTION_IDS = ['trend', 'genres', 'rising', 'russia', 'tracks', 'insights'];
+export const SECTION_IDS = ['trend', 'mine', 'genres', 'rising', 'russia', 'tracks', 'insights'];
+const GENRE_ID = /^[a-z0-9-]{1,40}$/;
 
 /** Приводит присланные настройки к безопасному виду (белый список значений). */
 export function sanitizePrefs(input) {
@@ -47,7 +48,10 @@ export function sanitizePrefs(input) {
   const freq = ['off', 'daily', 'weekly'].includes(d.freq) ? d.freq : 'off';
   const sections = Array.isArray(d.sections) ? SECTION_IDS.filter((s) => d.sections.includes(s)) : [...SECTION_IDS];
   const lang = input && input.lang === 'en' ? 'en' : 'ru';
-  return { freq, sections, lang };
+  const favGenres = Array.isArray(d.favGenres || (input && input.favGenres))
+    ? [...new Set((d.favGenres || input.favGenres).filter((x) => typeof x === 'string' && GENRE_ID.test(x)))].slice(0, 30)
+    : [];
+  return { freq, sections, lang, favGenres };
 }
 
 /** Отправляем ли сегодня: daily — каждый день, weekly — по понедельникам (UTC). */
@@ -58,13 +62,36 @@ export function dueToday(freq, date = new Date()) {
 }
 
 const MAX = 4000;
+const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const pct = (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${Math.round(v)}%`);
+const STATUS_RU = { rising: 'растёт', stable: 'стабильно', declining: 'падает', emerging: 'зарождается', insufficient: 'мало данных' };
+
+/** Персональный блок «Мои жанры» из digest.genre_brief — только по избранным жанрам пользователя. */
+export function mineSection(digest, favGenres) {
+  const brief = digest && digest.genre_brief;
+  if (!brief || !favGenres || !favGenres.length) return null;
+  const changes = new Map((digest.status_changes || []).map((c) => [c.genre, c]));
+  const lines = [];
+  for (const id of favGenres) {
+    const g = brief[id];
+    if (!g) continue;
+    const ch = changes.get(id);
+    let line = g.status === 'insufficient' ? `• ${esc(g.name)}: мало данных для тренда`
+      : `• ${esc(g.name)}: ${pct(g.d7)} / 7д, ${pct(g.d30)} / 30д · ${STATUS_RU[g.status] || esc(g.status)}`;
+    if (ch) line += ` ⚡ статус: ${STATUS_RU[ch.from] || esc(ch.from)} → ${STATUS_RU[ch.to] || esc(ch.to)}`;
+    lines.push(line);
+  }
+  return lines.length ? '⭐ <b>Мои жанры</b>\n' + lines.join('\n') : null;
+}
 
 /** Собирает текст дайджеста из digest.json (формирует backend; динамические значения там уже экранированы). */
-export function buildMessage(digest, sections, { now = Date.now() } = {}) {
+export function buildMessage(digest, sections, { now = Date.now(), favGenres = [] } = {}) {
   if (!digest || !digest.sections) return null;
-  const parts = (digest.order || [])
-    .filter((k) => sections.includes(k) && digest.sections[k])
-    .map((k) => digest.sections[k]);
+  const all = { ...digest.sections };
+  const mine = mineSection(digest, favGenres);
+  if (mine) all.mine = mine;
+  const order = ['trend', 'mine', ...(digest.order || []).filter((k) => k !== 'trend')];
+  const parts = order.filter((k) => sections.includes(k) && all[k]).map((k) => all[k]);
   if (!parts.length) return null;
   const ageH = (now - new Date(digest.generated_at).getTime()) / 3600000;
   const stale = Number.isFinite(ageH) && ageH > 48 ? '\n⚠️ <b>Данные устарели</b>: сбор не обновлялся более 2 суток.' : '';
@@ -77,7 +104,8 @@ export function welcomeText() {
   return (
     '🎛 <b>DJ PULSE</b> — аналитика электронной музыки.\n\n' +
     'Жанры, диджеи, треки и тренды с графиками — в приложении. Нажмите кнопку ниже.\n\n' +
-    'Дайджест в чат: /subscribe daily или /subscribe weekly. Отключить: /unsubscribe.'
+    'Дайджест в чат: /subscribe daily или /subscribe weekly. Отключить: /unsubscribe.\n' +
+    'Свои жанры отмечайте звёздочкой в приложении — они попадут в блок «Мои жанры».'
   );
 }
 

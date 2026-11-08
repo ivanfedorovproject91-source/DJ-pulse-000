@@ -49,6 +49,7 @@ def lookup_artist(http: Http, mbid: str) -> dict | None:
         elif "beatport.com" in url:
             links.setdefault("beatport", url)
     area = d.get("area") or {}
+    life = d.get("life-span") or {}
     tags = sorted((d.get("tags") or []), key=lambda t: -int(t.get("count", 0)))
     return {
         "mbid": d["id"],
@@ -56,6 +57,8 @@ def lookup_artist(http: Http, mbid: str) -> dict | None:
         "country": d.get("country") or None,
         "area": area.get("name"),
         "type": d.get("type"),
+        "ended": bool(life.get("ended")),
+        "end_year": (life.get("end") or "")[:4] or None,
         "tags": [t["name"].lower() for t in tags[:15] if t.get("name")],
         "links": links,
     }
@@ -106,3 +109,17 @@ def wikidata_sitelinks(http: Http, qid: str) -> dict[str, str]:
     if "ruwiki" in sl:
         out["ru"] = sl["ruwiki"]["title"]
     return out
+
+
+def release_label(http: Http, rg_mbid: str) -> dict | None:
+    """Лейбл релиза: берём лейбл из самого раннего издания группы, у которого он указан.
+    None — лейбл не указан (самиздат, «[no label]»)."""
+    d = http.get(f"{BASE}/release", {"release-group": rg_mbid, "inc": "labels", "fmt": "json", "limit": 25}, ok_404=True) or {}
+    rels = sorted(d.get("releases", []), key=lambda r: r.get("date") or "9999")
+    for r in rels:
+        for li in r.get("label-info") or []:
+            lab = li.get("label") or {}
+            name = (lab.get("name") or "").strip()
+            if lab.get("id") and name and name.lower() != "[no label]":
+                return {"id": lab["id"], "name": name}
+    return None

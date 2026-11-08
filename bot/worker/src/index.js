@@ -39,9 +39,9 @@ async function getSub(env, id) {
 }
 const putSub = (env, id, sub) => env.SUBS.put(`u:${id}`, JSON.stringify({ ...sub, updated: new Date().toISOString() }));
 
-async function sendDigest(env, chatId, sections) {
+async function sendDigest(env, chatId, sections, favGenres = []) {
   const digest = await getDigest(env);
-  const text = buildMessage(digest, sections);
+  const text = buildMessage(digest, sections, { favGenres });
   if (!text) return { ok: false, status: 0, json: {} };
   return tg(env, 'sendMessage', { chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true, reply_markup: openButton(env) });
 }
@@ -62,9 +62,11 @@ async function handleUpdate(env, update) {
   } else if (c.cmd === 'unsubscribe') {
     await env.SUBS.delete(`u:${chatId}`);
     await tg(env, 'sendMessage', { chat_id: chatId, text: 'Дайджест отключён. Включить снова: /subscribe' });
+  } else if (c.cmd === 'id') {
+    await tg(env, 'sendMessage', { chat_id: chatId, text: `Ваш chat id: ${chatId}` });
   } else if (c.cmd === 'digest') {
     const sub = (await getSub(env, chatId)) || sanitizePrefs({});
-    const r = await sendDigest(env, chatId, sub.sections);
+    const r = await sendDigest(env, chatId, sub.sections, sub.favGenres);
     if (!r.ok) await tg(env, 'sendMessage', { chat_id: chatId, text: 'Дайджест пока недоступен: данные ещё не опубликованы.' });
   }
 }
@@ -76,7 +78,7 @@ async function runDigestJob(env) {
     for (const k of page.keys) {
       const sub = JSON.parse((await env.SUBS.get(k.name)) || 'null');
       if (!sub || !dueToday(sub.freq)) continue;
-      const r = await sendDigest(env, k.name.slice(2), sub.sections);
+      const r = await sendDigest(env, k.name.slice(2), sub.sections, sub.favGenres);
       if (r.ok) sent++;
       else if (r.status === 403 || r.status === 400) { await env.SUBS.delete(k.name); removed++; } // бот заблокирован / чат недоступен
       if (sent % 25 === 0) await new Promise((res) => setTimeout(res, 1000)); // лимиты Telegram

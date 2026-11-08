@@ -24,7 +24,7 @@ export function BottomNav({ active, onGo }: { active: Tab; onGo: (t: Tab) => voi
   );
 }
 
-export function Topbar({ onSettings, onBack }: { onSettings: () => void; onBack?: () => void }) {
+export function Topbar({ onSearch, onSettings, onBack }: { onSearch: () => void; onSettings: () => void; onBack?: () => void }) {
   const { t } = useI18n();
   return (
     <header className="topbar">
@@ -37,7 +37,10 @@ export function Topbar({ onSettings, onBack }: { onSettings: () => void; onBack?
         </div>
       )}
       {onBack && <div className="brand" style={{ flex: 1 }}><b>DJ <i>PULSE</i></b></div>}
+      <div style={{ display: 'flex', gap: 8 }}>
+      <button className="icon-btn" onClick={onSearch} aria-label={t('search.title')}><Icon name="search" size={20} /></button>
       <button className="icon-btn" onClick={onSettings} aria-label={t('an.settings')}><Icon name="gear" size={20} /></button>
+      </div>
     </header>
   );
 }
@@ -74,7 +77,7 @@ export function FreshnessBar({ data }: { data: AppData }) {
 export function SourcesList({ data }: { data: AppData }) {
   const { t, lang } = useI18n();
   const names: Record<string, string> = {
-    wikipedia: 'Wikipedia Pageviews', lastfm: 'Last.fm', deezer: 'Deezer', musicbrainz: 'MusicBrainz', youtube: 'YouTube Data API',
+    wikipedia: 'Wikipedia Pageviews', lastfm: 'Last.fm', deezer: 'Deezer', musicbrainz: 'MusicBrainz', youtube: 'YouTube Data API', ticketmaster: 'Ticketmaster (события)',
   };
   const entries = Object.entries(data.sources).sort(([a], [b]) => a.localeCompare(b));
   return (
@@ -83,7 +86,7 @@ export function SourcesList({ data }: { data: AppData }) {
         {entries.map(([id, s]) => (
           <div className="kv" key={id}>
             <span>{names[id] ?? (s.name ? `RSS · ${s.name}` : id)}</span>
-            <b style={{ color: s.status === 'ok' ? 'var(--up)' : s.status === 'error' ? 'var(--down)' : 'var(--tx3)' }}>
+            <b style={{ color: s.status === 'ok' ? 'var(--up)' : s.status === 'error' ? 'var(--warn)' : 'var(--tx3)' }}>
               {t(`sources.${s.status}` as Key)}
               <small>{t('sources.last')}: {s.last_success ? fmtDateTime(s.last_success, lang) : t('sources.never')}</small>
               {s.message && <small>{s.message}</small>}
@@ -92,6 +95,12 @@ export function SourcesList({ data }: { data: AppData }) {
         ))}
       </div>
       {data.missing.length > 0 && <p className="note pad">{t('sources.missing')}: {data.missing.join(', ')}</p>}
+      {(data.meta.notes?.length ?? 0) > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <p className="note">{t('sources.notes')}:</p>
+          {data.meta.notes!.slice(0, 6).map((e, i) => <p className="note" key={i}>• {e}</p>)}
+        </div>
+      )}
       {data.meta.errors.length > 0 && (
         <div style={{ marginTop: 10 }}>
           <p className="note">{t('sources.errors')}:</p>

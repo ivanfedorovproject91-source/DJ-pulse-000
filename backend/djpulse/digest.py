@@ -8,7 +8,8 @@ def _pct(v) -> str:
     return "—" if v is None else f"{v:+.0f}%"
 
 
-def build_digest(meta: dict, genres: list[dict], artists: list[dict], tracks: list[dict], insights: dict) -> dict:
+def build_digest(meta: dict, genres: list[dict], artists: list[dict], tracks: list[dict], insights: dict,
+                 status_changes: list[dict] | None = None) -> dict:
     sections: dict[str, str] = {}
     ready = [g for g in genres if g["status"] != "insufficient" and g["changes"]["d7"] is not None]
 
@@ -44,6 +45,10 @@ def build_digest(meta: dict, genres: list[dict], artists: list[dict], tracks: li
     status_line = f"Данные на {meta['data_date']} · статус: {meta['status']}"
     if meta["status"] != "ok":
         status_line += " ⚠️ часть источников недоступна"
+    # Краткие данные по каждому жанру — из них бот собирает персональный блок «Мои жанры».
+    brief = {g["id"]: {"name": g["name"], "d7": g["changes"]["d7"], "d30": g["changes"]["d30"],
+                       "status": g["status"], "score": g["score"]} for g in genres}
     return {"generated_at": meta["generated_at"], "data_date": meta["data_date"], "status": meta["status"],
+            "genre_brief": brief, "status_changes": status_changes or [],
             "sections": sections, "footer": escape(status_line),
             "order": ["trend", "genres", "rising", "russia", "tracks", "insights"]}

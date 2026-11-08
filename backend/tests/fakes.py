@@ -42,8 +42,11 @@ class FakeHttp:
         params = params or {}
         if "wikipedia.org/w/api.php" in url and params.get("action") == "query":
             titles = params["titles"].split("|")
-            pages = [{"title": t, **({"missing": True} if t == "Nonexistent genre" else {})} for t in titles]
+            pages = [{"title": t, **({"missing": True} if t == "Nonexistent genre" else {}),
+                      **({"pageprops": {"disambiguation": ""}} if t == "Ambiguous genre" else {})} for t in titles]
             return {"query": {"pages": pages}}
+        if "/api/rest_v1/page/summary/" in url:
+            return {"type": "standard", "extract": "Deep house is a subgenre of house music. It is slower and more atmospheric than the classic sound, with soft synth pads and a steady four-on-the-floor kick. More text follows here for length."}
         if "wikidata.org" in url:
             return {"entities": {params["ids"]: {"sitelinks": {"enwiki": {"title": "Fake Artist"}}}}}
         if "metrics/pageviews/per-article" in url:
@@ -76,6 +79,12 @@ class FakeHttp:
             return {"release_date": "2026-05-01"}
         if "api.deezer.com/artist/" in url:
             return {"id": 10, "name": "Artist One", "nb_fan": 4321, "picture_medium": "https://pic/10", "link": "https://deezer.com/a/10"}
+        if url.endswith("api.deezer.com/search"):
+            if '"Song"' in params.get("q", "") and '"Artist One"' in params.get("q", ""):
+                return {"data": [{"id": 5, "title": "Other", "preview": "https://p/x.mp3", "artist": {"name": "Artist One"}},
+                                 {"id": 7, "title": "Song", "preview": "https://p/song.mp3", "link": "https://deezer.com/t/7",
+                                  "artist": {"name": "Artist One"}, "album": {"cover_medium": "https://c/7.jpg"}}]}
+            return {"data": []}
         if "api.deezer.com/search/artist" in url:
             return {"data": []}
         if "musicbrainz.org/ws/2/artist/" in url and "/artist/?" not in url and params.get("inc"):
@@ -88,6 +97,16 @@ class FakeHttp:
                 return {"artists": [{"id": "mb-ru-1", "name": "Ruski DJ", "country": "RU", "score": 100}]}
             name = q.split('"')[1] if '"' in q else "Artist One"
             return {"artists": [{"id": "mb-" + name.replace(" ", ""), "name": name, "score": 100}]}
+        if url.endswith("/ws/2/release") and params.get("release-group"):
+            return {"releases": [
+                {"date": "2026-06-25", "label-info": [{"label": {"id": "lab-late", "name": "Late Label"}}]},
+                {"date": "2026-06-20", "label-info": [{"label": {"id": "lab-1", "name": "Deep Records"}}]}]}
+        if "app.ticketmaster.com" in url:
+            return {"_embedded": {"events": [
+                {"id": "ev1", "name": "Club Night", "url": "https://tm/ev1", "dates": {"start": {"localDate": "2026-07-10"}},
+                 "_embedded": {"venues": [{"name": "Hall", "city": {"name": "Berlin"}, "country": {"countryCode": "DE"}}]},
+                 "classifications": [{"genre": {"name": "Dance/Electronic"}, "subGenre": {"name": "House"}}]},
+                {"id": "ev2", "name": "No date", "url": "https://tm/ev2", "dates": {"start": {}}}]}}
         if "release-group" in url:
             return {"release-groups": [
                 {"id": "rg1", "title": "New EP", "primary-type": "EP", "first-release-date": "2026-06-20",

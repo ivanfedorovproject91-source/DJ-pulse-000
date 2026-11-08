@@ -36,6 +36,21 @@ def chart_tracks(http: Http, genre_id: int = ELECTRO_GENRE_ID, limit: int = 50) 
     return out
 
 
+def find_track(http: Http, artist: str, title: str) -> dict | None:
+    """Ищет трек по исполнителю и названию; принимает только совпадение обоих (без регистра/знаков),
+    чтобы не подставить чужую песню. Нужен ради 30-секундного превью для треков Last.fm."""
+    data = http.get(f"{BASE}/search", {"q": f'artist:"{artist}" track:"{title}"', "limit": 8}) or {}
+    ta, tt = _norm_name(artist), _norm_name(title)
+    for t in data.get("data", []):
+        if not t.get("preview"):
+            continue
+        if _norm_name((t.get("artist") or {}).get("name", "")) == ta and _norm_name(t.get("title", "")) == tt:
+            album = t.get("album") or {}
+            return {"deezer_id": t.get("id"), "preview": t["preview"], "url": t.get("link"),
+                    "cover": album.get("cover_medium") or album.get("cover")}
+    return None
+
+
 def track_release_date(http: Http, track_id: int) -> str | None:
     d = http.get(f"{BASE}/track/{track_id}", ok_404=True) or {}
     rd = d.get("release_date")

@@ -3,6 +3,8 @@ import BarChart from '../charts/BarChart';
 import { SERIES } from '../charts/palette';
 import { ArtistRow, NewsRow } from '../components/Rows';
 import { SourcesList } from '../components/Shell';
+import { Events, Labels } from './Scene';
+import { resetOnboarding } from '../components/Onboarding';
 import { Empty, SecHead, Seg, SourceTags, Toggle } from '../components/ui';
 import { apiConfigured, saveDigestPrefs, type SyncResult } from '../services/api';
 import { useI18n, type Key } from '../services/i18n';
@@ -11,7 +13,8 @@ import { DIGEST_SECTIONS, SECTIONS, usePrefs, type DigestSection, type Lang } fr
 import { haptic, inTelegram, tg } from '../services/telegram';
 import type { AppData } from '../types';
 
-export type ATab = 'insights' | 'world' | 'sources' | 'settings';
+export type ATab = 'insights' | 'world' | 'labels' | 'events' | 'sources' | 'settings';
+const ATABS: ATab[] = ['insights', 'world', 'labels', 'events', 'sources', 'settings'];
 const ENT: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#x27;': "'", '&#39;': "'" };
 
 /** Безопасно показывает дайджест: допускается только <b>, остальное — обычный текст. */
@@ -27,12 +30,13 @@ export default function Analytics({ data, tab, setTab, go }: { data: AppData; ta
   return (
     <>
       <h1 className="page-title">{t('nav.analytics')}</h1>
-      <div className="tabs-page">
-        <Seg<ATab> value={tab} onChange={setTab}
-          options={[{ id: 'insights', label: t('an.insights') }, { id: 'world', label: t('an.world') }, { id: 'sources', label: t('an.sources') }, { id: 'settings', label: t('an.settings') }]} />
+      <div className="chips">
+        {ATABS.map((x) => <button key={x} className={`chip ${tab === x ? 'on' : ''}`} onClick={() => { setTab(x); haptic(); }}>{t(`an.${x}` as Key)}</button>)}
       </div>
       {tab === 'insights' && <Insights data={data} go={go} />}
       {tab === 'world' && <World data={data} go={go} />}
+      {tab === 'labels' && <Labels data={data} />}
+      {tab === 'events' && <Events data={data} />}
       {tab === 'sources' && <Sources data={data} />}
       {tab === 'settings' && <Settings data={data} />}
     </>
@@ -240,6 +244,7 @@ function Settings({ data }: { data: AppData }) {
             </div>
           </>
         )}
+        <button className="btn ghost sm" style={{ marginTop: 14 }} onClick={() => { resetOnboarding(); window.location.reload(); }}>{t('onb.again')}</button>
         {!inTelegram() && <button className="btn" style={{ marginTop: 14 }} disabled={busy || !dirty} onClick={() => void save()}>{t('settings.digest.save')}</button>}
         {inTelegram() && !dirty && result !== 'ok' && !apiConfigured && <p className="note" style={{ marginTop: 10 }}>{t('settings.digest.noapi')}</p>}
         {result && <p className="note" style={{ marginTop: 10, color: result === 'ok' ? 'var(--up)' : 'var(--warn)' }}>{t(msg[result])}</p>}

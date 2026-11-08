@@ -44,6 +44,8 @@ profiles = {  # (база, дрейф за год) — вымышленные п
     "trance": (4200, -0.1), "drum-and-bass": (3500, 0.1), "uk-garage": (1300, 0.6), "amapiano": (1800, 1.4),
     "downtempo": (900, -0.3), "electronica": (2200, -0.4),
 }
+for _g in GENRES:   # остальные жанры — вымышленные профили, чтобы в демо были все семейства
+    profiles.setdefault(_g.id, (rnd.randint(300, 2500), round(rnd.uniform(-0.4, 1.3), 2)))
 daily = {g.id: walk(400, *profiles[g.id]) for g in GENRES}
 table = trends.genre_table(daily, END, config.SETTINGS.thresholds)
 
@@ -52,12 +54,12 @@ for g in GENRES:
     r = table[g.id]
     lf = {(TODAY - timedelta(days=d)).isoformat(): int(50000 * (1 + (30 - d) * 0.002)) for d in (0, 30, 60)} if g.id in ("afro-house", "techno") else {}
     genres.append({
-        "id": g.id, "name": g.name, "score": r["score"], "level": r["level"], "changes": r["changes"], "status": r["status"],
+        "id": g.id, "name": g.name, "family": g.family, "score": r["score"], "level": r["level"], "changes": r["changes"], "status": r["status"],
         "history_days": r["history_days"],
         "signals": {"lastfm_growth_30d": trends.snapshot_growth(lf, TODAY, 30) if lf else None, "lastfm_reach": max(lf.values()) if lf else None},
         "history": {"wiki": sorted((d, v) for d, v in daily[g.id].items() if d >= (TODAY - timedelta(days=365)).isoformat()),
                     "lf_reach": sorted(lf.items())},
-        "wiki_article": g.wiki[0], "sources": ["Wikipedia Pageviews"] + (["Last.fm"] if lf else []), "as_of": END.isoformat(),
+        "wiki_article": g.wiki[0], "summary": f"DEMO: пример описания жанра «{g.name}». В рабочих данных здесь первый абзац статьи Wikipedia.", "sources": ["Wikipedia Pageviews"] + (["Last.fm"] if lf else []), "as_of": END.isoformat(),
     })
 
 COUNTRY_CODES = ["RU", "RU", "RU", "RU", "US", "GB", "DE", "NL", "FR", "ES", "IT", "BR", "UA", "PL", "TR", "ZA"]
@@ -143,8 +145,18 @@ meta = {"schema": 1, "generated_at": NOW, "data_date": TODAY.isoformat(), "statu
 
 files = {"meta": meta, "genres": {"generated_at": NOW, "items": genres}, "artists": {"generated_at": NOW, "items": artists},
          "tracks": {"generated_at": NOW, "items": tracks}, "releases": {"generated_at": NOW, "items": releases},
-         "news": {"generated_at": NOW, "items": news}, "countries": {"generated_at": NOW, "items": countries},
-         "insights": {"generated_at": NOW, **insights}, "sources": sources, "digest": build_digest(meta, genres, artists, tracks, insights)}
+         "news": {"generated_at": NOW, "items": news},
+         "labels": {"generated_at": NOW, "items": [
+             {"id": f"demo-label-{i}", "name": f"Demo Records {i + 1}", "url": "https://musicbrainz.org/", "n_releases": 6 - i,
+              "artists": [a["name"] for a in artists[i * 2:i * 2 + 3]],
+              "genres": [{"genre": GENRES[i].id, "name": GENRES[i].name, "count": 3}],
+              "releases": [{"title": f"Demo EP {i}", "artist": artists[i]["name"], "date": TODAY.isoformat(), "url": "https://musicbrainz.org/"}]}
+             for i in range(5)]},
+         "events": {"generated_at": NOW, "items": [
+             {"id": f"demo-ev{i}", "name": f"Demo Night {i + 1}", "date": (TODAY + timedelta(days=5 + i * 3)).isoformat(), "url": "https://example.com/",
+              "venue": "Demo Hall", "city": ["Berlin", "London", "Amsterdam"][i % 3], "country": ["DE", "GB", "NL"][i % 3], "genre": "Dance/Electronic", "subgenre": None}
+             for i in range(6)]}, "countries": {"generated_at": NOW, "items": countries},
+         "insights": {"generated_at": NOW, **insights}, "sources": {**sources, "ticketmaster": {"status": "ok", "last_success": NOW}}, "digest": build_digest(meta, genres, artists, tracks, insights, [{"date": TODAY.isoformat(), "genre": genres[1]["id"], "name": genres[1]["name"], "from": "stable", "to": "rising"}])}
 for k, v in files.items():
     (OUT / f"{k}.json").write_text(json.dumps(v, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print("DEMO data →", OUT, {k: (OUT / f"{k}.json").stat().st_size for k in files})

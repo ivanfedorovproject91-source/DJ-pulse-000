@@ -16,12 +16,19 @@ from pathlib import Path
 from . import config
 from .analytics import insights as insights_mod
 from .analytics import trends
-from .collectors import deezer, lastfm, musicbrainz, rss, wikipedia, youtube
+from .collectors import deezer, lastfm, musicbrainz, rss, ticketmaster, wikipedia, youtube
 from .digest import build_digest
 from .http import Http, SourceError
 from .store import History, SourceState, iso, read_json, utcnow, write_json
 
 SCHEMA_VERSION = 1
+
+
+def _short(msg: str, n: int = 90) -> str:
+    """Сообщение об ошибке без HTML-мусора (страницы 404 приходят целиком)."""
+    m = re.match(r"(HTTP \d+ [^:<]*)", msg)
+    clean = m.group(1).strip() if m else re.sub(r"<[^>]*>|\s+", " ", msg).strip()
+    return clean[:n]
 
 
 def slugify(name: str) -> str:
@@ -58,8 +65,10 @@ class Pipeline:
         self.hist = History(data / "history" / "history.json", self.settings.history_keep_days)
         self.state = SourceState(self.public / "sources.json")
         self.errors: list[str] = []
+        self.notes: list[str] = []   # информационные пометки (не сбои источников)
         self.lf = lastfm.LastFm(self.http, env["LASTFM_API_KEY"]) if env.get("LASTFM_API_KEY") else None
         self.yt_key = env.get("YOUTUBE_API_KEY")
+        self.tm_key = env.get("TICKETMASTER_API_KEY")
 
     # ---------- утилиты ----------
     def _guard(self, sid: str, fn, *a, **kw):
@@ -67,7 +76,7 @@ class Pipeline:
             res = fn(*a, **kw)
             return res
         except SourceError as exc:
-            self.state.fail(sid, str(exc)); self.errors.append(f"{sid}: {exc}")
+            self.state.fail(sid, _short(str(exc))); self.errors.append(f"{sid}: {_short(str(exc), 160)}")
         except Exception as exc:  # не даём одному источнику уронить остальные
             self.state.fail(sid, f"{type(exc).__name__}: {exc}"); self.errors.append(f"{sid}: {exc}")
         return None
@@ -81,6 +90,8 @@ class Pipeline:
     # ---------- 1. Wikipedia: жанры ----------
     def step_wikipedia_genres(self) -> None:
         titles_cache = self._cache("wiki_titles.json")
+        if titles_cache.get("__v") != 2:   # старый кэш создан без проверки страниц-«разветвлений»
+            titles_cache = {"__v": 2}
         failures = 0
         resolved: dict[str, str] = {}
         def work():
@@ -89,11 +100,18 @@ class Pipeline:
             if need:
                 titles_cache.update(wikipedia.resolve_titles(self.http, need))
                 self._save_cache("wiki_titles.json", titles_cache)
+            owners: dict[str, str] = {}
             for g in self.genres:
                 title = next((titles_cache[c] for c in g.wiki if titles_cache.get(c)), None)
                 if not title:
-                    self.errors.append(f"wikipedia: нет статьи для жанра {g.name}"); failures += 1
+                    # Нет отдельной статьи — это свойство жанра, а не сбой источника.
+                    self.notes.append(f"{g.name}: нет отдельной статьи в Wikipedia — тренд не считается")
                     continue
+                if title in owners:
+                    # Два жанра не могут делить одну статью: вторая кривая была бы копией первой.
+                    self.notes.append(f"{g.name}: статья «{title}» уже занята жанром {owners[title]} — тренд не считается")
+                    continue
+                owners[title] = g.name
                 resolved[g.id] = title
                 ent = f"genre:{g.id}"
                 start, end = wikipedia.date_window(self.hist.last_day(ent, "wiki"), self.today,
@@ -103,12 +121,35 @@ class Pipeline:
                 except SourceError as exc:
                     failures += 1; self.errors.append(f"wikipedia {g.name}: {exc}")
         self._guard("wikipedia", work)
+        self.step_genre_summaries(resolved)
         if resolved and failures == 0:
             self.state.ok("wikipedia", extra={"genres_loaded": len(resolved)})
         elif resolved:
             self.state.ok("wikipedia", f"частично: ошибок {failures} из {len(self.genres)}",
                           extra={"genres_loaded": len(resolved), "partial": True})
         self.wiki_genre_titles = resolved
+
+    def step_genre_summaries(self, resolved: dict[str, str]) -> None:
+        """Описание жанра — один раз на статью, обновляется раз в ~2 месяца."""
+        cache = self._cache("wiki_summaries.json")
+        now = utcnow()
+        def fresh(e: dict) -> bool:
+            try:
+                return (now - datetime.fromisoformat(e["at"])).days < 60
+            except Exception:
+                return False
+        fails = 0
+        for title in sorted(set(resolved.values())):
+            if title in cache and fresh(cache[title]):
+                continue
+            try:
+                cache[title] = {"text": wikipedia.fetch_summary(self.http, title), "at": iso(now)}
+            except SourceError:
+                fails += 1
+                if fails >= 5:
+                    break
+        self._save_cache("wiki_summaries.json", cache)
+        self.genre_summaries = {gid: (cache.get(t) or {}).get("text") for gid, t in resolved.items()}
 
     # ---------- 2. Last.fm: жанры, артисты, треки ----------
     def step_lastfm_genres(self) -> None:
@@ -189,7 +230,10 @@ class Pipeline:
         """Поиск российских артистов в MusicBrainz по стране RU и тегам жанров."""
         cache = self._cache("ru_discovered.json")
         def work():
-            for g in self.genres[:9]:  # самые «клубные» жанры, чтобы уложиться в 1 запрос/сек
+            gs = list(self.genres)
+            n = min(self.settings.mb_discover_genres_per_run, len(gs))
+            off = (self.today.toordinal() * n) % len(gs)
+            for g in [gs[(off + i) % len(gs)] for i in range(n)]:  # часть жанров за запуск, по кругу
                 found = musicbrainz.discover_by_country(self.http, "RU", g.mb_tag, 10)
                 for a in found:
                     if a["score"] >= 70:
@@ -203,13 +247,13 @@ class Pipeline:
         mb_cache = self._cache("mb_artists.json")
         dz_cache = self._cache("dz_artists.json")
         wiki_cache = self._cache("wiki_artist_titles.json")
-        budget = 60  # новых MB-запросов за один запуск; кэш накапливается между запусками
+        budget = self.settings.mb_lookups_per_run  # новых MB-запросов за запуск; кэш накапливается между запусками
         mb_fail = 0
         artists: list[dict] = []
         for c in top:
             key = norm(c["name"])
             mb = mb_cache.get(key)
-            if mb is None and budget > 0:
+            if (mb is None or (mb and not mb.get("missing") and "ended" not in mb)) and budget > 0:
                 try:
                     hit = musicbrainz.lookup_artist(self.http, c["mbid"]) if c["mbid"] else None
                     if not hit:
@@ -237,7 +281,8 @@ class Pipeline:
             aid = slugify(name)
             a = {"id": aid, "name": name, "country": (mb or {}).get("country"), "country_source": "MusicBrainz" if mb and mb.get("country") else None,
                  "mbid": (mb or {}).get("mbid") or c["mbid"], "links": dict((mb or {}).get("links") or {}),
-                 "tags": list((mb or {}).get("tags") or []), "_lf_genres": set(c["lf_genres"]), "deezer_id": c["deezer_id"],
+                 "tags": list((mb or {}).get("tags") or []), "ended": bool((mb or {}).get("ended")),
+                 "end_year": (mb or {}).get("end_year"), "_lf_genres": set(c["lf_genres"]), "deezer_id": c["deezer_id"],
                  "photo": None, "metrics": {}, "sources": []}
             out.append(a)
         # Два имени-кандидата могут оказаться одним артистом в MusicBrainz — объединяем по mbid.
@@ -441,7 +486,11 @@ class Pipeline:
 
             rising = None
             confirming = [s for s in signals if s["d30"] is not None and s["d30"] >= th.rising_artist_30d]
-            if growth30 is not None and growth30 >= th.rising_artist_30d and len(confirming) >= th.rising_artist_min_signals:
+            # «Растёт» только у действующих артистов и при заметном объёме интереса (иначе +300% от 3 просмотров — шум)
+            enough = (wlvl is not None and wlvl >= th.rising_artist_min_wiki_views) or any(
+                s["source"] != "Wikipedia" for s in confirming)
+            if (not a.get("ended") and enough and growth30 is not None and growth30 >= th.rising_artist_30d
+                    and len(confirming) >= th.rising_artist_min_signals):
                 parts = ", ".join(f"{s['source']} {s['d30']:+.0f}%" for s in confirming)
                 rising = {"reason": f"Рост за 30 дн. по: {parts}", "sources": sorted({s['source'] for s in confirming}),
                           "n_signals": len(confirming)}
@@ -464,6 +513,8 @@ class Pipeline:
                 "genres": sorted(gids), "photo": a["photo"], "links": {k: v for k, v in a["links"].items() if v},
                 "metrics": metrics, "popularity": popularity, "n_sources": len(srcs), "sources": srcs,
                 "growth_30d": growth30, "growth_90d": growth90, "signals": signals, "rising": rising,
+                "ended": bool(a.get("ended")), "end_year": a.get("end_year"),
+                "growth_sources": sorted({s["source"] for s in signals if s["d30"] is not None}),
                 "history": hist_out,
             })
         return result
@@ -480,12 +531,13 @@ class Pipeline:
             cutoff = (self.today - timedelta(days=365)).isoformat()
             wiki_hist = sorted((d, v) for d, v in daily[g.id].items() if d >= cutoff)
             out.append({
-                "id": g.id, "name": g.name, "score": row["score"], "level": row["level"],
+                "id": g.id, "name": g.name, "family": g.family, "score": row["score"], "level": row["level"],
                 "changes": row["changes"], "status": row["status"], "history_days": row["history_days"],
                 "signals": {"lastfm_growth_30d": lf_growth,
                             "lastfm_reach": (lf[max(lf)] if lf else None)},
                 "history": {"wiki": wiki_hist, "lf_reach": sorted(lf.items())},
                 "wiki_article": getattr(self, "wiki_genre_titles", {}).get(g.id),
+                "summary": getattr(self, "genre_summaries", {}).get(g.id),
                 "sources": ["Wikipedia Pageviews"] + (["Last.fm"] if lf else []),
                 "as_of": max(daily[g.id]) if daily[g.id] else None,
             })
@@ -522,6 +574,51 @@ class Pipeline:
                 })
         return tracks
 
+    def enrich_previews(self, tracks: list[dict]) -> None:
+        """Треки Last.fm не имеют аудио. Ищем тот же трек на Deezer (строгое совпадение исполнителя
+        и названия) и подставляем 30-секундное превью. Ссылки Deezer на превью со временем протухают,
+        поэтому кэш считается свежим около суток и обновляется при следующем запуске."""
+        cands: dict[str, list[dict]] = {}
+        per_genre: dict[str, int] = {}
+        for t in sorted((x for x in tracks if x["source"] == "lastfm"), key=lambda x: x["chart_position"]):
+            if per_genre.get(t["genre"], 0) >= self.settings.preview_per_genre:
+                continue
+            per_genre[t["genre"]] = per_genre.get(t["genre"], 0) + 1
+            cands.setdefault(f"{norm(t['artist'])}|{norm(t['title'])}", []).append(t)
+        if not cands:
+            return
+        cache = self._cache("track_previews.json")
+        now = utcnow()
+        def age_h(e: dict) -> float:
+            try:
+                return (now - datetime.fromisoformat(e["at"])).total_seconds() / 3600
+            except Exception:
+                return 1e9
+        stale = [k for k in cands if k not in cache or age_h(cache[k]) > (336 if cache[k].get("miss") else 20)]
+        stale.sort(key=lambda k: age_h(cache[k]) if k in cache else 1e10, reverse=True)
+        used = fails = 0
+        for k in stale[: self.settings.preview_lookups_per_run]:
+            t = cands[k][0]
+            try:
+                found = deezer.find_track(self.http, t["artist"], t["title"])
+            except SourceError:
+                fails += 1
+                if fails >= 5:   # Deezer недоступен — не тратим время
+                    break
+                continue
+            cache[k] = {"at": iso(now), **(found or {"miss": True})}
+            used += 1
+        for k, arr in cands.items():
+            e = cache.get(k)
+            if e and e.get("preview") and age_h(e) <= 48:
+                for t in arr:
+                    t["preview"] = e["preview"]
+                    t["cover"] = t["cover"] or e.get("cover")
+        keep = {k: v for k, v in cache.items() if k in cands}
+        self._save_cache("track_previews.json", keep)
+        if fails:
+            self.notes.append(f"Deezer: не удалось найти превью для части треков ({fails} запросов)")
+
     def step_releases(self) -> list[dict]:
         out: list[dict] = []
         since = (self.today - timedelta(days=30)).isoformat()
@@ -552,17 +649,80 @@ class Pipeline:
             if r["mbid"] in seen:
                 continue
             seen.add(r["mbid"]); uniq.append(r)
+        self.attach_labels(uniq)
         return uniq
+
+    def attach_labels(self, releases: list[dict]) -> None:
+        """Лейбл релиза из MusicBrainz. Лейбл у релиза не меняется, поэтому результат кэшируется навсегда;
+        за запуск делаем ограниченное число новых запросов (1 запрос/сек)."""
+        cache = self._cache("mb_labels.json")
+        budget, fails = self.settings.mb_label_lookups_per_run, 0
+        for r in releases:
+            if r["mbid"] in cache:
+                continue
+            if budget <= 0 or fails >= 5:
+                break
+            budget -= 1
+            try:
+                cache[r["mbid"]] = musicbrainz.release_label(self.http, r["mbid"])
+            except SourceError:
+                fails += 1
+        for r in releases:
+            r["label"] = cache.get(r["mbid"])
+        if len(cache) > 3000:
+            cache = {k: v for k, v in cache.items() if k in {r["mbid"] for r in releases}}
+        self._save_cache("mb_labels.json", cache)
+
+    def compute_labels(self, releases: list[dict]) -> list[dict]:
+        """Лейблы по выборке свежих релизов MusicBrainz (не по всему рынку): сколько новых релизов, у каких артистов, в каких жанрах."""
+        gname = {g.id: g.name for g in self.genres}
+        by: dict[str, dict] = {}
+        for r in releases:
+            lab = r.get("label")
+            if not lab:
+                continue
+            e = by.setdefault(lab["id"], {"id": lab["id"], "name": lab["name"],
+                                          "url": f"https://musicbrainz.org/label/{lab['id']}",
+                                          "n_releases": 0, "artists": [], "genres": {}, "releases": []})
+            e["n_releases"] += 1
+            if r["artist"] not in e["artists"]:
+                e["artists"].append(r["artist"])
+            e["genres"][r["genre"]] = e["genres"].get(r["genre"], 0) + 1
+            e["releases"].append({"title": r["title"], "artist": r["artist"], "date": r["date"], "url": r["url"]})
+        out = []
+        for e in by.values():
+            e["artists"] = e["artists"][:6]
+            e["releases"] = sorted(e["releases"], key=lambda x: x["date"], reverse=True)[:5]
+            e["genres"] = sorted(({"genre": g, "name": gname.get(g, g), "count": n} for g, n in e["genres"].items()),
+                                 key=lambda x: -x["count"])[:5]
+            out.append(e)
+        out.sort(key=lambda e: (-e["n_releases"], e["name"].lower()))
+        return out[:60]
+
+    def step_events(self) -> list[dict]:
+        if not self.tm_key:
+            self.state.disabled("ticketmaster", "ключ TICKETMASTER_API_KEY не задан — события не показываются (необязательный источник)")
+            return []
+        prev = read_json(self.public / "events.json", {}).get("items", [])
+        res = self._guard("ticketmaster", ticketmaster.upcoming_events, self.http, self.tm_key, self.today)
+        if res is None:
+            return prev       # источник упал — оставляем прошлые события, статус «временно недоступен»
+        self.state.ok("ticketmaster", extra={"events": len(res)})
+        return res
 
     def step_news(self) -> list[dict]:
         items, ok = [], 0
         prev = read_json(self.public / "news.json", {}).get("items", [])
-        for f in config.load_feeds():
+        feeds = config.load_feeds()
+        for k in [k for k in self.state.data if k.startswith("rss:") and k[4:] not in {f["id"] for f in feeds}]:
+            del self.state.data[k]   # лента убрана из списка — не показываем её старую ошибку
+        for f in feeds:
             try:
                 items += rss.fetch_feed(self.http, f); ok += 1
                 self.state.ok(f"rss:{f['id']}", extra={"name": f["name"]})
             except SourceError as exc:
-                self.state.fail(f"rss:{f['id']}", str(exc)); self.errors.append(f"rss {f['name']}: {exc}")
+                self.state.fail(f"rss:{f['id']}", _short(str(exc)))
+                self.notes.append(f"Лента «{f['name']}» сейчас недоступна — новости из неё не показаны")
                 self.state.data[f"rss:{f['id']}"]["name"] = f["name"]
         if not ok:
             return prev
@@ -611,6 +771,25 @@ class Pipeline:
             out.append(entry)
         return out
 
+    # ---------- смены статусов жанров ----------
+    def update_status_log(self, genres: list[dict], prev: dict[str, str]) -> list[dict]:
+        """Журнал смен статуса (Rising/Stable/…): нужен персональным уведомлениям.
+        Фиксируем только переходы между осмысленными статусами; последние 7 дней уходят в дайджест."""
+        path = self.hist.path.parent / "status_log.json"
+        log: list[dict] = read_json(path, [])
+        if self.state.data.get("wikipedia", {}).get("status") == "ok":
+            day = self.today.isoformat()
+            for g in genres:
+                old = prev.get(g["id"])
+                if old and old != "insufficient" and g["status"] != "insufficient" and old != g["status"]:
+                    if not any(e["date"] == day and e["genre"] == g["id"] for e in log):
+                        log.append({"date": day, "genre": g["id"], "name": g["name"], "from": old, "to": g["status"]})
+        cutoff = (self.today - timedelta(days=30)).isoformat()
+        log = [e for e in log if e["date"] >= cutoff]
+        write_json(path, log, pretty=True)
+        recent = (self.today - timedelta(days=7)).isoformat()
+        return [e for e in log if e["date"] >= recent]
+
     # ---------- запуск ----------
     def run_news_only(self) -> dict:
         """Лёгкое частое обновление: только новости (RSS) и новые релизы (MusicBrainz).
@@ -620,6 +799,7 @@ class Pipeline:
         generated = iso(utcnow())
         write_json(self.public / "news.json", {"generated_at": generated, "items": news})
         write_json(self.public / "releases.json", {"generated_at": generated, "items": releases})
+        write_json(self.public / "labels.json", {"generated_at": generated, "items": self.compute_labels(releases)})
         self.state.save()
         return {"news": len(news), "releases": len(releases), "errors": self.errors}
 
@@ -634,13 +814,18 @@ class Pipeline:
         reg = self.step_artists()
         self.step_artist_metrics(reg)
 
+        prev_status = {g["id"]: g["status"] for g in read_json(self.public / "genres.json", {}).get("items", [])}
         genres = self.compute_genres()
         artists = self.compute_artists(reg)
         tracks = self.compute_tracks()
+        self.enrich_previews(tracks)
         releases = self.step_releases()
+        labels = self.compute_labels(releases)
+        events = self.step_events()
         news = self.step_news()
         countries = self.compute_countries(artists)
         insights = insights_mod.build_insights(genres, artists, tracks, releases, self.today)
+        status_changes = self.update_status_log(genres, prev_status)
 
         self.hist.prune(self.today)
         self.hist.save()
@@ -653,7 +838,7 @@ class Pipeline:
             s.get("status") == "ok" for s in self.state.data.values()) else "failed")
         meta = {
             "schema": SCHEMA_VERSION, "generated_at": generated, "data_date": self.today.isoformat(), "status": status,
-            "demo": False, "errors": self.errors[:40],
+            "demo": False, "errors": self.errors[:40], "notes": self.notes[:80],
             "counts": {"genres": len(genres), "artists": len(artists), "tracks": len(tracks),
                        "releases": len(releases), "news": len(news)},
             "history_days_max": max((g["history_days"] for g in genres), default=0),
@@ -668,6 +853,8 @@ class Pipeline:
         write_json(w / "tracks.json", {"generated_at": generated, "items": tracks}) if tracks or not (w / "tracks.json").exists() else None
         write_json(w / "releases.json", {"generated_at": generated, "items": releases})
         write_json(w / "news.json", {"generated_at": generated, "items": news})
+        write_json(w / "labels.json", {"generated_at": generated, "items": labels})
+        write_json(w / "events.json", {"generated_at": generated, "items": events})
         write_json(w / "countries.json", {"generated_at": generated, "items": countries})
-        write_json(w / "digest.json", build_digest(meta, genres, artists, tracks, insights))
+        write_json(w / "digest.json", build_digest(meta, genres, artists, tracks, insights, status_changes))
         return meta

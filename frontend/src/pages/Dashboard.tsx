@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import LineChart from '../charts/LineChart';
 import { SERIES } from '../charts/palette';
 import { ArtistRow, GenreRow, NewsRow, ReleaseRow, TrackRow } from '../components/Rows';
-import { Empty, SecHead, SourceTags } from '../components/ui';
+import { Empty, SecHead, SourceTags, StatusBadge } from '../components/ui';
 import { useAudio } from '../hooks/useAudio';
 import { useI18n } from '../services/i18n';
 import { fmtPct } from '../services/format';
@@ -35,6 +35,7 @@ export default function Dashboard({ data, go }: Props) {
   const favGenres = data.genres.filter((g) => prefs.favGenres.includes(g.id));
   const favArtists = data.artists.filter((a) => prefs.favArtists.includes(a.id));
   const wt = data.insights.weekly_trend;
+  const shifts = (data.digest?.status_changes ?? []).slice().sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
 
   return (
     <>
@@ -56,6 +57,21 @@ export default function Dashboard({ data, go }: Props) {
               <p className="note" style={{ marginTop: 8 }}>{t('trend.none.why')}</p>
             </>
           )}
+        </section>
+      )}
+
+      {shifts.length > 0 && (
+        <section className="sec">
+          <SecHead title={t('changes.title')} note={t('changes.note')} />
+          <div className="panel">
+            {shifts.map((c) => (
+              <div className="row" key={`${c.genre}-${c.date}`} style={{ cursor: 'pointer' }} role="button" tabIndex={0}
+                onClick={() => go(`genres/${c.genre}`)} onKeyDown={(e) => e.key === 'Enter' && go(`genres/${c.genre}`)}>
+                <div className="grow"><div className="title">{c.name}</div><div className="sub">{c.date}</div></div>
+                <StatusBadge status={c.from} /> <span className="note">→</span> <StatusBadge status={c.to} />
+              </div>
+            ))}
+          </div>
         </section>
       )}
 

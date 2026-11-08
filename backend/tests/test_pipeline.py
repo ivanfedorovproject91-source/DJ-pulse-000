@@ -43,12 +43,15 @@ def test_full_run_produces_all_files(dirs):
 
 def test_missing_wikipedia_article_is_reported_not_faked(dirs, monkeypatch):
     monkeypatch.setattr(config, "GENRES", config.GENRES + (
-        config.Genre("ghost", "Ghost", ("Nonexistent genre",), "ghost", "ghost"),))
+        config.Genre("ghost", "Ghost", "global", ("Nonexistent genre",), "ghost", "ghost"),))
     run(dirs, FakeHttp(TODAY))
     ghost = next(x for x in load(dirs, "genres")["items"] if x["id"] == "ghost")
     assert ghost["score"] is None and ghost["status"] == "insufficient"
     assert ghost["history"]["wiki"] == []
-    assert any("Ghost" in e for e in load(dirs, "meta")["errors"])
+    meta = load(dirs, "meta")
+    assert any("Ghost" in n for n in meta["notes"])      # пометка, а не сбой источника
+    assert not any("Ghost" in e for e in meta["errors"])
+    assert meta["status"] == "ok"                          # из-за жанра без статьи статус не «partial»
 
 
 def test_snapshot_metrics_have_no_growth_on_first_day(dirs):
@@ -189,3 +192,118 @@ def test_same_musicbrainz_artist_under_two_names_is_merged(dirs, monkeypatch):
     ids = [x["id"] for x in a]
     assert len(ids) == len(set(ids))
     assert sum(1 for x in a if x["name"] == "Artist One") == 1
+
+
+def test_two_genres_cannot_share_one_wikipedia_article(dirs, monkeypatch):
+    first = config.GENRES[0]
+    twin = config.Genre("twin", "Twin", "global", first.wiki, "twin", "twin")
+    monkeypatch.setattr(config, "GENRES", config.GENRES + (twin,))
+    run(dirs, FakeHttp(TODAY))
+    items = {x["id"]: x for x in load(dirs, "genres")["items"]}
+    assert items["twin"]["score"] is None and items["twin"]["history"]["wiki"] == []
+    assert items[first.id]["history"]["wiki"]
+    assert any("Twin" in n for n in load(dirs, "meta")["notes"])
+
+
+def test_genres_have_family_and_digest_brief(dirs):
+    run(dirs, FakeHttp(TODAY))
+    items = load(dirs, "genres")["items"]
+    assert all(g["family"] in config.FAMILIES for g in items)
+    d = load(dirs, "digest.json")
+    assert "deep-house" in d["genre_brief"] and d["genre_brief"]["deep-house"]["status"]
+    assert d["status_changes"] == []
+
+
+def test_status_change_is_logged(dirs):
+    run(dirs, FakeHttp(TODAY))
+    gp = dirs[0] / "genres.json"
+    g = json.loads(gp.read_text(encoding="utf-8"))
+    real = next(x for x in g["items"] if x["id"] == "deep-house")["status"]
+    for x in g["items"]:
+        if x["id"] == "deep-house":
+            x["status"] = "declining" if real != "declining" else "rising"
+    gp.write_text(json.dumps(g), encoding="utf-8")
+    run(dirs, FakeHttp(TODAY), today=TODAY + timedelta(days=1))
+    ch = load(dirs, "digest.json")["status_changes"]
+    assert any(c["genre"] == "deep-house" and c["to"] == real for c in ch)
+    assert (dirs[1] / "history" / "status_log.json").exists()
+
+
+def test_lastfm_tracks_get_deezer_preview_only_on_exact_match(dirs):
+    run(dirs, FakeHttp(TODAY))
+    lf = [t for t in load(dirs, "tracks")["items"] if t["source"] == "lastfm"]
+    assert lf and all(t["preview"] == "https://p/song.mp3" for t in lf)   # «Other» с тем же артистом не подошёл
+    assert all(t["url"] == "https://last.fm/t" for t in lf)               # ссылка осталась на Last.fm
+
+
+def test_rss_failure_is_a_note_not_an_error(dirs):
+    meta = run(dirs, FakeHttp(TODAY, fail_hosts=("attackmagazine.com",)))
+    assert not any("rss" in e.lower() for e in meta["errors"])
+    assert any("Attack" in n for n in meta["notes"])
+
+
+def test_removed_feed_state_is_dropped(dirs):
+    run(dirs, FakeHttp(TODAY))
+    p = dirs[1] / "cache"
+    from djpulse.store import SourceState
+    sp = next((dirs[1]).rglob("sources.json"), None) or (dirs[0] / "sources.json")
+    d = json.loads(sp.read_text(encoding="utf-8"))
+    d["rss:residentadvisor"] = {"status": "error", "message": "HTTP 404", "name": "Resident Advisor"}
+    sp.write_text(json.dumps(d), encoding="utf-8")
+    run(dirs, FakeHttp(TODAY), today=TODAY + timedelta(days=1))
+    assert "rss:residentadvisor" not in load(dirs, "sources.json")
+
+
+def test_disambiguation_page_is_not_used_as_genre_article(dirs, monkeypatch):
+    monkeypatch.setattr(config, "GENRES", config.GENRES + (
+        config.Genre("amb", "Ambig", "global", ("Ambiguous genre",), "amb", "amb"),))
+    run(dirs, FakeHttp(TODAY))
+    g = next(x for x in load(dirs, "genres")["items"] if x["id"] == "amb")
+    assert g["history"]["wiki"] == [] and g["wiki_article"] is None
+    assert any("Ambig" in n for n in load(dirs, "meta")["notes"])
+
+
+def test_genre_gets_wikipedia_summary(dirs):
+    run(dirs, FakeHttp(TODAY))
+    g = next(x for x in load(dirs, "genres")["items"] if x["id"] == "deep-house")
+    assert g["summary"] and g["summary"].startswith("Deep house is")
+    assert len(g["summary"]) <= 421
+
+
+def test_labels_come_from_earliest_release_with_label(dirs):
+    run(dirs, FakeHttp(TODAY))
+    labs = load(dirs, "labels.json")["items"]
+    assert labs and labs[0]["name"] == "Deep Records"          # раннее издание, а не «Late Label»
+    assert labs[0]["n_releases"] >= 1 and labs[0]["releases"][0]["title"] == "New EP"
+    assert "musicbrainz.org/label/lab-1" in labs[0]["url"]
+    assert any(r.get("label") for r in load(dirs, "releases.json")["items"])
+
+
+def test_label_lookups_are_cached(dirs):
+    class Counting(FakeHttp):
+        n = 0
+        def get(self, url, params=None, **kw):
+            if url.endswith("/ws/2/release"):
+                Counting.n += 1
+            return super().get(url, params, **kw)
+    run(dirs, Counting(TODAY)); first = Counting.n
+    run(dirs, Counting(TODAY), today=TODAY + timedelta(days=1))
+    assert first >= 1 and Counting.n == first
+
+
+def test_events_disabled_without_key_and_loaded_with_key(dirs):
+    run(dirs, FakeHttp(TODAY))
+    assert load(dirs, "events.json")["items"] == []
+    assert load(dirs, "sources.json")["ticketmaster"]["status"] == "disabled"
+    run(dirs, FakeHttp(TODAY), env={"LASTFM_API_KEY": "k", "TICKETMASTER_API_KEY": "t"})
+    ev = load(dirs, "events.json")["items"]
+    assert [e["id"] for e in ev] == ["ev1"]                    # событие без даты отброшено
+    assert ev[0]["city"] == "Berlin" and ev[0]["country"] == "DE"
+
+
+def test_events_source_down_keeps_previous_events(dirs):
+    env = {"LASTFM_API_KEY": "k", "TICKETMASTER_API_KEY": "t"}
+    run(dirs, FakeHttp(TODAY), env=env)
+    run(dirs, FakeHttp(TODAY, fail_hosts=("ticketmaster.com",)), env=env, today=TODAY + timedelta(days=1))
+    assert [e["id"] for e in load(dirs, "events.json")["items"]] == ["ev1"]
+    assert load(dirs, "sources.json")["ticketmaster"]["status"] == "error"

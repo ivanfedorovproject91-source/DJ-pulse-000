@@ -29,35 +29,108 @@ USER_AGENT = "DJPulse/1.0 (+%s)" % os.environ.get("DJPULSE_REPO", "https://githu
 class Genre:
     id: str
     name: str
-    # Кандидаты названий статьи в английской Википедии (берётся первая существующая).
+    family: str
+    # Кандидаты названий статьи в английской Википедии (берётся первая существующая и не занятая другим жанром).
     wiki: tuple[str, ...]
     # Тег в Last.fm (tag.getInfo / tag.getTopArtists / tag.getTopTracks).
     lastfm_tag: str
     # Тег в MusicBrainz для поиска новых релизов.
     mb_tag: str
-    # Нужен ли «не-ядро» жанр для Rising/discovery (все True по умолчанию).
-    discover: bool = True
 
 
+# Семейства жанров (подписи для интерфейса лежат во frontend/src/services/i18n.tsx).
+FAMILIES = ("house", "techno", "trance", "bass", "hard", "disco", "chill", "global")
+
+
+def _g(gid: str, name: str, family: str, wiki: tuple[str, ...] | None = None, tag: str | None = None) -> Genre:
+    t = tag or name.lower()
+    return Genre(gid, name, family, wiki or (name,), t, t)
+
+
+# ВАЖНО: идентификаторы (id) — это ключи истории. Не переименовывайте существующие жанры.
+# Если у жанра нет отдельной статьи в Wikipedia, он остаётся в списке со статусом «мало данных»
+# (это не ошибка источника). Один и тот же статьёй два жанра владеть не могут.
 GENRES: tuple[Genre, ...] = (
-    Genre("organic-house", "Organic House", ("Organic house",), "organic house", "organic house"),
-    Genre("afro-house", "Afro House", ("Afro house",), "afro house", "afro house"),
-    Genre("melodic-house", "Melodic House", ("Melodic house and techno", "Melodic house"), "melodic house", "melodic house"),
-    Genre("melodic-techno", "Melodic Techno", ("Melodic techno", "Melodic house and techno"), "melodic techno", "melodic techno"),
-    Genre("progressive-house", "Progressive House", ("Progressive house",), "progressive house", "progressive house"),
-    Genre("deep-house", "Deep House", ("Deep house",), "deep house", "deep house"),
-    Genre("tech-house", "Tech House", ("Tech house",), "tech house", "tech house"),
-    Genre("indie-dance", "Indie Dance", ("Indie dance",), "indie dance", "indie dance"),
-    Genre("minimal-deep-tech", "Minimal / Deep Tech", ("Minimal techno", "Deep tech"), "minimal techno", "minimal techno"),
-    Genre("house", "House", ("House music",), "house", "house"),
-    Genre("techno", "Techno", ("Techno",), "techno", "techno"),
-    Genre("hard-techno", "Hard Techno", ("Hard techno", "Hardcore techno"), "hard techno", "hard techno"),
-    Genre("trance", "Trance", ("Trance music",), "trance", "trance"),
-    Genre("drum-and-bass", "Drum & Bass", ("Drum and bass",), "drum and bass", "drum and bass"),
-    Genre("uk-garage", "UK Garage", ("UK garage",), "uk garage", "uk garage"),
-    Genre("amapiano", "Amapiano", ("Amapiano",), "amapiano", "amapiano"),
-    Genre("downtempo", "Downtempo", ("Downtempo",), "downtempo", "downtempo"),
-    Genre("electronica", "Electronica", ("Electronica",), "electronica", "electronica"),
+    # --- House ---
+    _g("house", "House", "house", ("House music",)),
+    _g("deep-house", "Deep House", "house", ("Deep house",)),
+    _g("tech-house", "Tech House", "house", ("Tech house",)),
+    _g("progressive-house", "Progressive House", "house", ("Progressive house",)),
+    _g("melodic-house", "Melodic House", "house", ("Melodic house and techno", "Melodic house")),
+    _g("organic-house", "Organic House", "house", ("Organic house",)),
+    _g("afro-house", "Afro House", "house", ("Afro house",)),
+    _g("acid-house", "Acid House", "house", ("Acid house",)),
+    _g("chicago-house", "Chicago House", "house", ("Chicago house",)),
+    _g("electro-house", "Electro House", "house", ("Electro house",)),
+    _g("future-house", "Future House", "house", ("Future house",)),
+    _g("bass-house", "Bass House", "house", ("Bass house",)),
+    _g("tribal-house", "Tribal House", "house", ("Tribal house",)),
+    _g("funky-house", "Funky House", "house", ("Funky house",)),
+    _g("french-house", "French House", "house", ("French house",)),
+    _g("big-room-house", "Big Room House", "house", ("Big room house",)),
+    _g("latin-house", "Latin House", "house", ("Latin house",)),
+    _g("brazilian-bass", "Brazilian Bass", "house", ("Brazilian bass",)),
+    _g("slap-house", "Slap House", "house", ("Slap house",)),
+    # --- Techno ---
+    _g("techno", "Techno", "techno", ("Techno",)),
+    _g("melodic-techno", "Melodic Techno", "techno", ("Melodic techno",)),
+    _g("hard-techno", "Hard Techno", "techno", ("Hard techno",)),
+    _g("minimal-deep-tech", "Minimal / Deep Tech", "techno", ("Minimal techno", "Deep tech"), "minimal techno"),
+    _g("detroit-techno", "Detroit Techno", "techno", ("Detroit techno",)),
+    _g("industrial-techno", "Industrial Techno", "techno", ("Industrial techno",)),
+    _g("dub-techno", "Dub Techno", "techno", ("Dub techno",)),
+    _g("schranz", "Schranz", "techno", ("Schranz",)),
+    _g("acid-techno", "Acid Techno", "techno", ("Acid techno",)),
+    # --- Trance ---
+    _g("trance", "Trance", "trance", ("Trance music",)),
+    _g("progressive-trance", "Progressive Trance", "trance", ("Progressive trance",)),
+    _g("uplifting-trance", "Uplifting Trance", "trance", ("Uplifting trance",)),
+    _g("psytrance", "Psytrance", "trance", ("Psychedelic trance", "Psytrance")),
+    _g("goa-trance", "Goa Trance", "trance", ("Goa trance",)),
+    _g("hard-trance", "Hard Trance", "trance", ("Hard trance",)),
+    # --- Bass & Breaks ---
+    _g("drum-and-bass", "Drum & Bass", "bass", ("Drum and bass",), "drum and bass"),
+    _g("liquid-funk", "Liquid Funk", "bass", ("Liquid funk",), "liquid funk"),
+    _g("neurofunk", "Neurofunk", "bass", ("Neurofunk",)),
+    _g("jungle", "Jungle", "bass", ("Jungle music",), "jungle"),
+    _g("dubstep", "Dubstep", "bass", ("Dubstep",)),
+    _g("breakbeat", "Breakbeat", "bass", ("Breakbeat",)),
+    _g("uk-garage", "UK Garage", "bass", ("UK garage",)),
+    _g("two-step", "2-Step Garage", "bass", ("2-step garage",), "2-step"),
+    _g("future-garage", "Future Garage", "bass", ("Future garage",)),
+    _g("grime", "Grime", "bass", ("Grime (music genre)", "Grime")),
+    _g("trap-edm", "Trap (EDM)", "bass", ("Trap (EDM)",), "trap"),
+    _g("future-bass", "Future Bass", "bass", ("Future bass",)),
+    # --- Hard Dance ---
+    _g("hardstyle", "Hardstyle", "hard", ("Hardstyle",)),
+    _g("hardcore", "Hardcore / Gabber", "hard", ("Hardcore (electronic music genre)", "Gabber"), "gabber"),
+    _g("happy-hardcore", "Happy Hardcore", "hard", ("Happy hardcore",)),
+    _g("frenchcore", "Frenchcore", "hard", ("Frenchcore",)),
+    _g("hard-dance", "Hard Dance", "hard", ("Hard dance",)),
+    # --- Disco & Retro ---
+    _g("disco", "Disco", "disco", ("Disco",)),
+    _g("nu-disco", "Nu-Disco", "disco", ("Nu-disco",), "nu disco"),
+    _g("italo-disco", "Italo Disco", "disco", ("Italo disco",)),
+    _g("electro", "Electro", "disco", ("Electro (music)",), "electro"),
+    _g("electroclash", "Electroclash", "disco", ("Electroclash",)),
+    _g("synthwave", "Synthwave", "disco", ("Synthwave",)),
+    _g("eurodance", "Eurodance", "disco", ("Eurodance",)),
+    _g("vaporwave", "Vaporwave", "disco", ("Vaporwave",)),
+    # --- Downtempo & Experimental ---
+    _g("downtempo", "Downtempo", "chill", ("Downtempo",)),
+    _g("electronica", "Electronica", "chill", ("Electronica",)),
+    _g("ambient", "Ambient", "chill", ("Ambient music",), "ambient"),
+    _g("idm", "IDM", "chill", ("Intelligent dance music",), "idm"),
+    _g("chillout", "Chillout", "chill", ("Chill-out music",), "chillout"),
+    _g("trip-hop", "Trip Hop", "chill", ("Trip hop",)),
+    _g("glitch", "Glitch", "chill", ("Glitch (music)",), "glitch"),
+    _g("breakcore", "Breakcore", "chill", ("Breakcore",)),
+    # --- Global & Other ---
+    _g("indie-dance", "Indie Dance", "global", ("Indie dance",)),
+    _g("amapiano", "Amapiano", "global", ("Amapiano",)),
+    _g("gqom", "Gqom", "global", ("Gqom",)),
+    _g("baile-funk", "Baile Funk", "global", ("Funk carioca",), "baile funk"),
+    _g("phonk", "Phonk", "global", ("Phonk",)),
 )
 
 
@@ -81,6 +154,7 @@ def load_genres() -> tuple[Genre, ...]:
                 Genre(
                     id=gid,
                     name=str(item["name"]),
+                    family=str(item.get("family") or "global") if str(item.get("family") or "global") in FAMILIES else "global",
                     wiki=tuple(item.get("wiki") or [item["name"]]),
                     lastfm_tag=str(item.get("lastfm_tag") or item["name"].lower()),
                     mb_tag=str(item.get("mb_tag") or item["name"].lower()),
@@ -120,7 +194,6 @@ COUNTRIES: tuple[Country, ...] = (
 RSS_FEEDS: tuple[dict, ...] = (
     {"id": "mixmag", "name": "Mixmag", "url": "https://mixmag.net/rss.xml"},
     {"id": "djmag", "name": "DJ Mag", "url": "https://djmag.com/rss.xml"},
-    {"id": "residentadvisor", "name": "Resident Advisor", "url": "https://ra.co/xml/rss.xml"},
     {"id": "attack", "name": "Attack Magazine", "url": "https://www.attackmagazine.com/feed/"},
 )
 
@@ -149,6 +222,7 @@ class Thresholds:
     min_history_days_for_status: int = 35
     rising_artist_30d: float = 15.0
     rising_artist_min_signals: int = 1
+    rising_artist_min_wiki_views: float = 50.0
 
 
 @dataclass
@@ -157,8 +231,13 @@ class Settings:
     wiki_backfill_days: int = 365
     history_keep_days: int = 800
     top_artists_per_tag: int = 25
-    max_registry_artists: int = 220
+    max_registry_artists: int = 400
     mb_discover_ru_limit: int = 40
+    mb_discover_genres_per_run: int = 25   # российские артисты ищутся по части жанров за запуск (по кругу)
+    preview_lookups_per_run: int = 450      # поиск превью на Deezer для треков Last.fm
+    preview_per_genre: int = 6
+    mb_lookups_per_run: int = 100
+    mb_label_lookups_per_run: int = 80
     tracks_per_tag: int = 15
     news_max_items: int = 40
     news_max_age_days: int = 21

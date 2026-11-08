@@ -8,6 +8,8 @@ export interface Meta {
   status: 'ok' | 'partial' | 'failed';
   demo: boolean;
   errors: string[];
+  /** Информационные пометки (не сбои): например, у жанра нет отдельной статьи. */
+  notes?: string[];
   counts: Record<string, number>;
   history_days_max: number;
 }
@@ -23,6 +25,8 @@ export interface SourceInfo {
 export interface Genre {
   id: string;
   name: string;
+  family?: string;
+  summary?: string | null;
   score: number | null;
   level: number | null;
   changes: { d7: number | null; d30: number | null; d90: number | null; y1: number | null };
@@ -62,6 +66,9 @@ export interface Artist {
   sources: string[];
   growth_30d: number | null;
   growth_90d: number | null;
+  ended?: boolean;
+  end_year?: string | null;
+  growth_sources?: string[];
   signals: Signal[];
   rising: { reason: string; sources: string[]; n_signals: number } | null;
   history: Record<string, Point[]>;
@@ -93,6 +100,28 @@ export interface Release {
   type: string | null;
   url: string;
   genre: string;
+}
+
+export interface LabelItem {
+  id: string;
+  name: string;
+  url: string;
+  n_releases: number;
+  artists: string[];
+  genres: { genre: string; name: string; count: number }[];
+  releases: { title: string; artist: string; date: string; url: string }[];
+}
+
+export interface EventItem {
+  id: string;
+  name: string;
+  date: string;
+  url: string;
+  venue: string | null;
+  city: string | null;
+  country: string | null;
+  genre: string | null;
+  subgenre: string | null;
 }
 
 export interface NewsItem {
@@ -161,6 +190,8 @@ export interface Digest {
   data_date: string;
   status: string;
   sections: Record<string, string>;
+  genre_brief?: Record<string, { name: string; d7: number | null; d30: number | null; status: Status; score: number | null }>;
+  status_changes?: { date: string; genre: string; name: string; from: Status; to: Status }[];
   footer: string;
   order: string[];
 }
@@ -172,6 +203,8 @@ export interface AppData {
   tracks: Track[];
   releases: Release[];
   news: NewsItem[];
+  labels: LabelItem[];
+  events: EventItem[];
   countries: Country[];
   insights: { weekly_trend: WeeklyTrend | null; items: Insight[] };
   sources: Record<string, SourceInfo>;

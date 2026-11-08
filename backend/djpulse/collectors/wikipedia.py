@@ -23,12 +23,15 @@ def resolve_titles(http: Http, candidates: list[str], lang: str = "en") -> dict[
         chunk = candidates[i : i + 40]
         data = http.get(
             API.format(lang=lang),
-            {"action": "query", "titles": "|".join(chunk), "redirects": 1, "format": "json", "formatversion": 2},
+            {"action": "query", "titles": "|".join(chunk), "redirects": 1, "format": "json", "formatversion": 2,
+             "prop": "pageprops", "ppprop": "disambiguation"},
         )
         q = (data or {}).get("query") or {}
         norm = {n["from"]: n["to"] for n in q.get("normalized", [])}
         redir = {r["from"]: r["to"] for r in q.get("redirects", [])}
-        missing = {p["title"] for p in q.get("pages", []) if p.get("missing") or p.get("invalid")}
+        # страница-«разветвление» (disambiguation) — не статья о жанре: просмотры были бы чужие
+        missing = {p["title"] for p in q.get("pages", [])
+                   if p.get("missing") or p.get("invalid") or "disambiguation" in (p.get("pageprops") or {})}
         for c in chunk:
             t = norm.get(c, c)
             for _ in range(5):  # цепочки редиректов
@@ -70,3 +73,22 @@ def date_window(last_known: str | None, today: date, backfill_days: int) -> tupl
     if start > end:
         raise SourceError("пустое окно дат для Wikipedia")
     return start, end
+
+
+SUMMARY = "https://{lang}.wikipedia.org/api/rest_v1/page/summary/{title}"
+
+
+def fetch_summary(http: Http, title: str, lang: str = "en", max_len: int = 420) -> str | None:
+    """Краткое описание из первого абзаца статьи (текст Wikipedia, CC BY-SA). None — нет данных."""
+    d = http.get(SUMMARY.format(lang=lang, title=quote(title.replace(" ", "_"), safe="")), ok_404=True)
+    if not d or d.get("type") == "disambiguation":
+        return None
+    text = d.get("extract")
+    if not isinstance(text, str) or len(text.strip()) < 40:
+        return None
+    text = " ".join(text.split())
+    if len(text) > max_len:
+        cut = text[:max_len]
+        end = max(cut.rfind(". "), cut.rfind("! "))
+        text = cut[: end + 1] if end > 120 else cut.rsplit(" ", 1)[0] + "…"
+    return text

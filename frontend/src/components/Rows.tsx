@@ -25,8 +25,8 @@ export function GenreRow({ g, onOpen, fav, onFav, right }: {
   );
 }
 
-export function ArtistRow({ a, onOpen, rank, showReason, fav, onFav }: {
-  a: Artist; onOpen: () => void; rank?: number; showReason?: boolean; fav?: boolean; onFav?: () => void;
+export function ArtistRow({ a, onOpen, rank, showReason, fav, onFav, badge }: {
+  a: Artist; onOpen: () => void; rank?: number; showReason?: boolean; badge?: string; fav?: boolean; onFav?: () => void;
 }) {
   const { t, lang } = useI18n();
   return (
@@ -34,7 +34,7 @@ export function ArtistRow({ a, onOpen, rank, showReason, fav, onFav }: {
       {rank != null && <span className="rank" style={{ paddingTop: 12 }}>{rank}</span>}
       <Avatar name={a.name} photo={a.photo} />
       <div className="grow" style={{ paddingTop: 2 }}>
-        <div className="title">{a.name}</div>
+        <div className="title">{a.name}{badge && <span className="new-badge">{badge}</span>}{a.ended && <span className="src-tag" style={{ marginLeft: 6 }}>архив{a.end_year ? ` · ${a.end_year}` : ''}</span>}</div>
         <div className="sub">{flag(a.country)} {a.country ?? '—'}{a.sources.length ? ` · ${a.sources.join(', ')}` : ''}</div>
         {a.popularity != null ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 7 }}>

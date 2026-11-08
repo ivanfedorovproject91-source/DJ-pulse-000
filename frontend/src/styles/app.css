@@ -230,3 +230,16 @@ button.row:active { background: var(--s2); }
   body { background: #090a0b; }
   .app { border-left: 1px solid var(--line); border-right: 1px solid var(--line); background: var(--bg); }
 }
+
+/* Тепловая карта жанров */
+.heat { padding: 8px 10px 12px; }
+.heat-row { display: grid; grid-template-columns: minmax(70px, 1.25fr) repeat(8, minmax(0, 1fr)); gap: 2px; align-items: center; width: 100%; text-align: left; padding: 2px 0; }
+.heat-head { color: var(--tx3); font-size: 10.5px; padding-bottom: 4px; }
+.heat-col { text-align: center; white-space: nowrap; }
+.heat-name { font-size: 12px; color: var(--tx2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 6px; }
+.heat-cell { height: 26px; min-width: 0; border-radius: 5px; display: grid; place-items: center; font-size: 10.5px; font-weight: 600; color: var(--tx); font-variant-numeric: tabular-nums; }
+.pick-list { display: grid; gap: 2px; margin: 10px 0; }
+.pick-row { display: flex; align-items: center; gap: 10px; padding: 11px 6px; border-radius: 10px; text-align: left; }
+.pick-row[aria-pressed="true"] { background: var(--s2); }
+.pick-row .sw { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line); flex: none; }
+.new-badge { font-size: 10.5px; font-weight: 700; color: var(--acc-ink); background: var(--acc); border-radius: 6px; padding: 1px 6px; margin-left: 6px; }

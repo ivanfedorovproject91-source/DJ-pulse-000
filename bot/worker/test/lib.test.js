@@ -46,8 +46,8 @@ test('пустые данные и отсутствие hash', async () => {
 
 test('sanitizePrefs оставляет только допустимые значения', () => {
   const p = sanitizePrefs({ lang: 'xx', digest: { freq: 'hourly', sections: ['trend', '<script>', 'rising'] } });
-  assert.deepEqual(p, { freq: 'off', sections: ['trend', 'rising'], lang: 'ru' });
-  assert.equal(sanitizePrefs({ digest: { freq: 'daily' } }).sections.length, 6);
+  assert.deepEqual(p, { freq: 'off', sections: ['trend', 'rising'], lang: 'ru', favGenres: [] });
+  assert.equal(sanitizePrefs({ digest: { freq: 'daily' } }).sections.length, 7);
 });
 
 test('расписание: weekly только по понедельникам', () => {
@@ -83,4 +83,36 @@ test('разбор команд', () => {
   assert.deepEqual(parseCommand('/subscribe Daily'), { cmd: 'subscribe', arg: 'daily' });
   assert.deepEqual(parseCommand('/start@dj_pulse_bot'), { cmd: 'start', arg: '' });
   assert.equal(parseCommand('привет'), null);
+});
+
+import { mineSection } from '../src/lib.js';
+
+test('sanitizePrefs: favGenres проходят белый список и лимит', () => {
+  const p = sanitizePrefs({ digest: { freq: 'daily', favGenres: ['deep-house', '<b>x</b>', 'techno', 'techno', 5, 'a'.repeat(50)] } });
+  assert.deepEqual(p.favGenres, ['deep-house', 'techno']);
+  assert.deepEqual(sanitizePrefs({}).favGenres, []);
+  const many = Array.from({ length: 50 }, (_, i) => `g${i}`);
+  assert.equal(sanitizePrefs({ digest: { favGenres: many } }).favGenres.length, 30);
+});
+
+const DIGEST = {
+  generated_at: new Date().toISOString(), footer: 'Данные на 2026-07-01', order: ['trend', 'genres'],
+  sections: { trend: 'T', genres: 'G' },
+  genre_brief: { 'deep-house': { name: 'Deep <House>', d7: 12.4, d30: -3, status: 'rising' }, rare: { name: 'Rare', d7: null, d30: null, status: 'insufficient' } },
+  status_changes: [{ genre: 'deep-house', from: 'stable', to: 'rising' }],
+};
+
+test('mineSection: только избранные, экранирование, смена статуса, честное «мало данных»', () => {
+  const t = mineSection(DIGEST, ['deep-house', 'rare', 'unknown']);
+  assert.match(t, /Deep &lt;House&gt;: \+12% \/ 7д, -3% \/ 30д/);
+  assert.match(t, /стабильно → растёт/);
+  assert.match(t, /Rare: мало данных/);
+  assert.equal(mineSection(DIGEST, []), null);
+});
+
+test('buildMessage: блок «Мои жанры» идёт сразу после тренда и только если выбран', () => {
+  const on = buildMessage(DIGEST, ['trend', 'mine', 'genres'], { favGenres: ['deep-house'] });
+  assert.ok(on.indexOf('T') < on.indexOf('Мои жанры') && on.indexOf('Мои жанры') < on.indexOf('G\n'));
+  assert.ok(!buildMessage(DIGEST, ['trend', 'genres'], { favGenres: ['deep-house'] }).includes('Мои жанры'));
+  assert.ok(!buildMessage(DIGEST, ['trend', 'mine'], { favGenres: [] }).includes('Мои жанры'));
 });
