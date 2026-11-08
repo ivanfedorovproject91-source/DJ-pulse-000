@@ -1,63 +1,63 @@
 {
  "deezer": {
   "artists_loaded": 397,
-  "last_attempt": "2026-11-08T16:40:12Z",
-  "last_success": "2026-11-08T16:40:12Z",
+  "last_attempt": "2026-11-08T17:29:23Z",
+  "last_success": "2026-11-08T17:29:23Z",
   "message": null,
   "status": "ok",
   "tracks": 50
  },
  "lastfm": {
-  "artists_loaded": 552,
+  "artists_loaded": 546,
   "genres_loaded": 114,
-  "last_attempt": "2026-11-08T16:38:52Z",
-  "last_success": "2026-11-08T16:38:52Z",
+  "last_attempt": "2026-11-08T17:28:15Z",
+  "last_success": "2026-11-08T17:28:15Z",
   "message": null,
   "status": "ok"
  },
  "musicbrainz": {
-  "artists_cached": 580,
-  "last_attempt": "2026-11-08T16:44:01Z",
-  "last_success": "2026-11-08T16:44:01Z",
+  "artists_cached": 670,
+  "last_attempt": "2026-11-08T17:36:10Z",
+  "last_success": "2026-11-08T17:36:10Z",
   "message": null,
-  "releases": 218,
+  "releases": 223,
   "status": "ok"
  },
  "rss:attack": {
-  "last_attempt": "2026-11-08T16:44:01Z",
-  "last_success": "2026-11-08T16:44:01Z",
+  "last_attempt": "2026-11-08T17:36:10Z",
+  "last_success": "2026-11-08T17:36:10Z",
   "message": null,
   "name": "Attack Magazine",
   "status": "ok"
  },
  "rss:djmag": {
-  "last_attempt": "2026-11-08T16:44:01Z",
-  "last_success": "2026-11-08T16:44:01Z",
+  "last_attempt": "2026-11-08T17:36:10Z",
+  "last_success": "2026-11-08T17:36:10Z",
   "message": null,
   "name": "DJ Mag",
   "status": "ok"
  },
  "rss:mixmag": {
-  "last_attempt": "2026-11-08T16:44:01Z",
-  "last_success": "2026-11-08T16:44:01Z",
+  "last_attempt": "2026-11-08T17:36:10Z",
+  "last_success": "2026-11-08T17:36:10Z",
   "message": null,
   "name": "Mixmag",
   "status": "ok"
  },
  "ticketmaster": {
-  "last_attempt": "2026-11-08T16:44:01Z",
+  "last_attempt": "2026-11-08T17:36:10Z",
   "message": "ключ TICKETMASTER_API_KEY не задан — события не показываются (необязательный источник)",
   "status": "disabled"
  },
  "wikipedia": {
   "genres_loaded": 86,
-  "last_attempt": "2026-11-08T16:31:46Z",
-  "last_success": "2026-11-08T16:31:46Z",
+  "last_attempt": "2026-11-08T17:19:22Z",
+  "last_success": "2026-11-08T17:19:22Z",
   "message": null,
   "status": "ok"
  },
  "youtube": {
-  "last_attempt": "2026-11-08T16:40:12Z",
+  "last_attempt": "2026-11-08T17:29:23Z",
   "message": "ключ YOUTUBE_API_KEY не задан — источник отключён (необязательный)",
   "status": "disabled"
  }
