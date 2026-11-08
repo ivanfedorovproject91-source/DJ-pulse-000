@@ -137,9 +137,12 @@ class Pipeline:
         self.step_genre_summaries(resolved)
         if resolved and failures == 0:
             self.state.ok("wikipedia", extra={"genres_loaded": len(resolved)})
-        elif resolved:
-            self.state.ok("wikipedia", f"частично: ошибок {failures} из {len(self.genres)}",
+        elif resolved and failures < len(resolved):
+            self.state.ok("wikipedia", f"частично: ошибок {failures} из {len(resolved)}",
                           extra={"genres_loaded": len(resolved), "partial": True})
+        elif resolved:
+            # Не загрузился ни один жанр — это сбой источника, а не «частичный» успех.
+            self.state.fail("wikipedia", f"не загрузились данные ни по одному жанру ({failures})")
         self.wiki_genre_titles = resolved
 
     def step_genre_summaries(self, resolved: dict[str, str]) -> None:
