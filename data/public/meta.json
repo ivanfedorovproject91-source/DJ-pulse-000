@@ -1,15 +1,18 @@
 {
  "counts": {
-  "artists": 400,
+  "artists": 531,
   "genres": 114,
   "news": 21,
-  "releases": 142,
+  "releases": 138,
   "tracks": 1694
  },
  "data_date": "2026-11-08",
  "demo": false,
- "errors": [],
- "generated_at": "2026-11-08T13:11:33Z",
+ "errors": [
+  "musicbrainz: musicbrainz.org: недоступен (HTTP 503 от musicbrainz.org)",
+  "lastfm artist Adriatique: ws.audioscrobbler.com: ответ не JSON"
+ ],
+ "generated_at": "2026-11-08T16:44:05Z",
  "history_days_max": 366,
  "notes": [
   "Melodic House: статья «Progressive house» уже занята жанром Progressive House — тренд не считается",
@@ -42,5 +45,5 @@
   "Psychedelic Bass: нет отдельной статьи в Wikipedia — тренд не считается"
  ],
  "schema": 1,
- "status": "ok"
+ "status": "partial"
 }
