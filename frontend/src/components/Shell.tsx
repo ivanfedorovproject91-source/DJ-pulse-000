@@ -79,7 +79,7 @@ export function SourcesList({ data }: { data: AppData }) {
   const names: Record<string, string> = {
     wikipedia: 'Wikipedia Pageviews', lastfm: 'Last.fm', deezer: 'Deezer', musicbrainz: 'MusicBrainz', youtube: 'YouTube Data API', ticketmaster: 'Ticketmaster (события)',
   };
-  const entries = Object.entries(data.sources).sort(([a], [b]) => a.localeCompare(b));
+  const entries = Object.entries(data.sources).filter(([, s]) => s.status !== 'disabled').sort(([a], [b]) => a.localeCompare(b));
   return (
     <div>
       <div className="panel">
@@ -95,7 +95,7 @@ export function SourcesList({ data }: { data: AppData }) {
         ))}
       </div>
       {data.missing.length > 0 && <p className="note pad">{t('sources.missing')}: {data.missing.join(', ')}</p>}
-      {(data.meta.notes?.length ?? 0) > 0 && (
+      {false && (data.meta.notes?.length ?? 0) > 0 && (
         <div style={{ marginTop: 10 }}>
           <p className="note">{t('sources.notes')}:</p>
           {data.meta.notes!.slice(0, 6).map((e, i) => <p className="note" key={i}>• {e}</p>)}

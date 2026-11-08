@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useI18n } from '../services/i18n';
+import { useI18n, type Key } from '../services/i18n';
 import { usePrefs } from '../services/prefs';
 import { readStore, writeStore } from '../services/storage';
 import { haptic } from '../services/telegram';
@@ -16,7 +16,10 @@ export default function Onboarding({ data, onClose }: { data: AppData; onClose: 
   const { prefs, toggleFav } = usePrefs();
   const [step, setStep] = useState(0);
   // Предлагаем самые заметные жанры, у которых уже есть оценка интереса
-  const popular = useMemo(() => [...data.genres].filter((g) => g.score != null).sort((a, b) => (b.score as number) - (a.score as number)).slice(0, 14), [data.genres]);
+  const [fam, setFam] = useState('all');
+  const families = useMemo(() => [...new Set(data.genres.map((g) => g.family).filter(Boolean))] as string[], [data.genres]);
+  const popular = useMemo(() => [...data.genres].filter((g) => fam === 'all' || g.family === fam)
+    .sort((a, b) => (b.score ?? -1) - (a.score ?? -1) || a.name.localeCompare(b.name)), [data.genres, fam]);
   const finish = () => { writeStore(KEY, { done: true }); onClose(); };
   return (
     <Sheet title={t('onb.title')} onClose={finish}>
@@ -32,7 +35,11 @@ export default function Onboarding({ data, onClose }: { data: AppData; onClose: 
         <>
           <p style={{ marginBottom: 4, fontWeight: 600 }}>{t('onb.pick')}</p>
           <p className="note" style={{ marginBottom: 10 }}>{t('onb.pick.note')}</p>
-          <div className="chips" style={{ flexWrap: 'wrap', overflow: 'visible', margin: 0, padding: 0, marginBottom: 14 }}>
+          <div className="chips" style={{ marginBottom: 8 }}>
+            <button className={`chip ${fam === 'all' ? 'on' : ''}`} onClick={() => setFam('all')}>{t('family.all')}</button>
+            {families.map((f) => <button key={f} className={`chip ${fam === f ? 'on' : ''}`} onClick={() => setFam(f)}>{t(`family.${f}` as Key)}</button>)}
+          </div>
+          <div className="chips" style={{ flexWrap: 'wrap', overflow: 'auto', maxHeight: 260, margin: 0, padding: 0, marginBottom: 14 }}>
             {popular.map((g) => (
               <button key={g.id} className={`chip ${prefs.favGenres.includes(g.id) ? 'on' : ''}`} style={{ marginBottom: 2 }}
                 aria-pressed={prefs.favGenres.includes(g.id)} onClick={() => { toggleFav('favGenres', g.id); haptic(); }}>{g.name}</button>

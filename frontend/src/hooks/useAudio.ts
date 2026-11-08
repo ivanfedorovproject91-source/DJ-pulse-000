@@ -1,12 +1,21 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { Track } from '../types';
-import { openLink } from '../services/telegram';
+
+/** Ошибка последнего неудавшегося превью — показывается под самим треком, без перехода на сайт. */
+let errState: { id: string; msg: string } | null = null;
+const subs = new Set<() => void>();
+const setErr = (e: { id: string; msg: string } | null) => { errState = e; subs.forEach((f) => f()); };
+export function useAudioError(id: string): string | null {
+  const cur = useSyncExternalStore((cb) => { subs.add(cb); return () => { subs.delete(cb); }; }, () => errState, () => null);
+  return cur && cur.id === id ? cur.msg : null;
+}
+
+const explain = (code: string) => `Превью не загрузилось на этом устройстве (${code}). Чаще всего это блокировка сети — попробуйте VPN или откройте трек кнопкой справа.`;
 
 /** Один общий <audio> на все превью: на мобильных WebView новый Audio() на каждый клик часто блокируется. */
 export function useAudio() {
   const ref = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const el = () => {
     if (!ref.current) {
@@ -25,21 +34,17 @@ export function useAudio() {
     if (!t.preview) return;
     const a = el();
     if (playing === t.id) { a.pause(); setPlaying(null); return; }
-    setError(null);
+    setErr(null);
     a.pause();
-    a.onerror = () => {
-      setPlaying(null);
-      setError(`media-error ${a.error?.code ?? ''}`.trim());
-      if (t.url) openLink(t.url); // превью недоступно на этом устройстве — открываем трек на сайте
-    };
+    a.onerror = () => { setPlaying(null); setErr({ id: t.id, msg: explain(`код ${a.error?.code ?? '?'}`) }); };
     a.src = t.preview;
     setPlaying(t.id);
     a.play().catch((e: unknown) => {
       setPlaying(null);
-      setError(e instanceof Error ? e.name : 'play-failed');
-      if (t.url) openLink(t.url);
+      const name = e instanceof Error ? e.name : 'ошибка';
+      setErr({ id: t.id, msg: explain(name) });
     });
   }, [playing]);
 
-  return { playing, toggle, error };
+  return { playing, toggle };
 }

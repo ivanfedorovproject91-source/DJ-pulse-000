@@ -1,3 +1,4 @@
+import { useAudioError } from '../hooks/useAudio';
 import { useI18n } from '../services/i18n';
 import { fmtDay, fmtNum, flag } from '../services/format';
 import { openLink } from '../services/telegram';
@@ -56,6 +57,7 @@ export function ArtistRow({ a, onOpen, rank, showReason, fav, onFav, badge }: {
 
 export function TrackRow({ tr, playing, onPlay }: { tr: Track; playing: boolean; onPlay: (t: Track) => void }) {
   const { t, lang } = useI18n();
+  const err = useAudioError(tr.id);
   return (
     <div className="row">
       <span className="pos">#{tr.chart_position}</span>
@@ -66,6 +68,7 @@ export function TrackRow({ tr, playing, onPlay }: { tr: Track; playing: boolean;
         <div className="sub">
           {tr.chart}{tr.release_date ? ` · ${t('tracks.released')} ${fmtDay(tr.release_date, lang)}` : ''}
         </div>
+        {err && <div className="note" style={{ color: 'var(--warn)', marginTop: 4 }}>{err}</div>}
       </div>
       <div style={{ textAlign: 'right', minWidth: 44 }}>
         {tr.position_delta != null ? <Delta v={tr.position_delta} /> : <span className="delta na">—</span>}

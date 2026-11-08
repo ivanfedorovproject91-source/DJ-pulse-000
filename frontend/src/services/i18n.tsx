@@ -261,7 +261,7 @@ const ru = {
   'method.limits.1': 'Beatport и SoundCloud не подключены: у них нет бесплатного публичного API для новых приложений.',
   'method.limits.2': 'Интерес к жанру оценивается косвенно — по Wikipedia; это не число прослушиваний.',
   'method.limits.3': 'Страна артиста берётся из MusicBrainz; у части артистов её нет.',
-  'method.limits.4': 'Подписчики, слушатели и фанаты накапливают историю с первого запуска — рост появится примерно через месяц.',
+  'method.limits.4': 'Рост артистов считается по накопленной истории: чем дольше работает приложение, тем точнее.',
   'method.lastfm': 'Данные Last.fm — Powered by AudioScrobbler.',
   'method.add': 'Новые жанры добавляются в файле data/custom_genres.json в репозитории (см. README).',
 
@@ -552,7 +552,7 @@ const en: Record<Key, string> = {
   'method.limits.1': 'Beatport and SoundCloud are not connected: neither offers a free public API for new apps.',
   'method.limits.2': 'Genre interest is measured indirectly via Wikipedia; it is not a play count.',
   'method.limits.3': 'Artist country comes from MusicBrainz; some artists have none.',
-  'method.limits.4': 'Followers, listeners and fans build history from the first run — growth appears after about a month.',
+  'method.limits.4': 'Artist growth is based on accumulated history: the longer the app runs, the more accurate it gets.',
   'method.lastfm': 'Last.fm data — Powered by AudioScrobbler.',
   'method.add': 'New genres are added in data/custom_genres.json in the repository (see README).',
 

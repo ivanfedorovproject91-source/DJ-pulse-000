@@ -31,12 +31,12 @@ export default function Analytics({ data, tab, setTab, go }: { data: AppData; ta
     <>
       <h1 className="page-title">{t('nav.analytics')}</h1>
       <div className="chips">
-        {ATABS.map((x) => <button key={x} className={`chip ${tab === x ? 'on' : ''}`} onClick={() => { setTab(x); haptic(); }}>{t(`an.${x}` as Key)}</button>)}
+        {ATABS.filter((x) => x !== 'events' || data.events.length > 0).map((x) => <button key={x} className={`chip ${tab === x ? 'on' : ''}`} onClick={() => { setTab(x); haptic(); }}>{t(`an.${x}` as Key)}</button>)}
       </div>
       {tab === 'insights' && <Insights data={data} go={go} />}
       {tab === 'world' && <World data={data} go={go} />}
       {tab === 'labels' && <Labels data={data} />}
-      {tab === 'events' && <Events data={data} />}
+      {tab === 'events' && data.events.length > 0 && <Events data={data} />}
       {tab === 'sources' && <Sources data={data} />}
       {tab === 'settings' && <Settings data={data} />}
     </>
@@ -163,8 +163,7 @@ function Sources({ data }: { data: AppData }) {
       <section className="sec">
         <SecHead title={t('method.limits')} />
         <div className="panel pad" style={{ display: 'grid', gap: 8 }}>
-          {(['method.limits.1', 'method.limits.2', 'method.limits.3', 'method.limits.4'] as Key[]).map((k) => <p className="note" key={k} style={{ color: 'var(--tx2)' }}>• {t(k)}</p>)}
-          <p className="note">{t('method.add')}</p>
+          {(['method.limits.2', 'method.limits.4'] as Key[]).map((k) => <p className="note" key={k} style={{ color: 'var(--tx2)' }}>• {t(k)}</p>)}
           <p className="note">{t('method.lastfm')}</p>
         </div>
       </section>
