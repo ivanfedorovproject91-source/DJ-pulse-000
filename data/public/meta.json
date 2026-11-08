@@ -11,7 +11,7 @@
  "errors": [
   "rss Resident Advisor: HTTP 404 от ra.co: \r\n\r\n<!DOCTYPE html>\r\n\r\n<html>\r\n<head>\r\n\t<title>RA. 404.</title>\r\n\t<style type=\"text/css\">\r\n\t\tBODY {font-family: Arial, Verdana; font-size: 12px; background-colo"
  ],
- "generated_at": "2026-11-08T08:46:28Z",
+ "generated_at": "2026-11-08T08:57:42Z",
  "history_days_max": 366,
  "schema": 1,
  "status": "partial"
