@@ -159,7 +159,7 @@ const ru = {
   'genre.artists': 'Популярные артисты',
   'genre.artists.none': 'Артистов этого жанра в реестре пока нет.',
   'genre.releases': 'Последние релизы',
-  'genre.releases.none': 'За 30 дней релизов с тегом жанра не найдено.',
+  'genre.releases.none': 'За 90 дней релизов с тегом жанра не найдено (теги в MusicBrainz ставят вручную, выборка неполная).',
   'genre.article': 'Источник: статья Wikipedia',
   'genre.asof': 'Данные по',
 
@@ -458,7 +458,7 @@ const en: Record<Key, string> = {
   'genre.artists': 'Popular artists',
   'genre.artists.none': 'No artists of this genre in the registry yet.',
   'genre.releases': 'Latest releases',
-  'genre.releases.none': 'No releases tagged with this genre in the last 30 days.',
+  'genre.releases.none': 'No releases tagged with this genre in the last 90 days (MusicBrainz tags are manual, so coverage is partial).',
   'genre.article': 'Source: Wikipedia article',
   'genre.asof': 'Data through',
 

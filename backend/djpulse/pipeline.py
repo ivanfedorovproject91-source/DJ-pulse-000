@@ -601,6 +601,37 @@ class Pipeline:
                 })
         return tracks
 
+    def filter_electronic_tracks(self, tracks: list[dict], artists: list[dict]) -> list[dict]:
+        """В треках по тегу жанра оставляем только артистов с электронными тегами. Неизвестных проверяем по Last.fm
+        (результат кэшируется), непроверенные пока не показываем — лучше пусто, чем поп-музыка в «Tech House»."""
+        accepted = {norm(a["name"]) for a in artists}
+        cache = self._cache("track_artist_class.json")
+        names = {}
+        for t in tracks:
+            if t["source"] == "lastfm":
+                names.setdefault(norm(t["artist"]), t["artist"])
+        todo = [k for k in names if k not in accepted and k not in self.rejected_artists and k not in cache]
+        if self.lf and todo:
+            budget, fails = 400, 0
+            for k in todo[:budget]:
+                try:
+                    info = self.lf.artist_info(names[k], None)
+                except SourceError:
+                    fails += 1
+                    if fails >= 8:
+                        break
+                    continue
+                cache[k] = {"el": bool(info) and is_electronic(info.get("tags") or [], False)}
+            self._save_cache("track_artist_class.json", cache)
+        def keep(t: dict) -> bool:
+            if t["source"] == "deezer":
+                return True
+            k = norm(t["artist"])
+            if k in self.rejected_artists:
+                return False
+            return k in accepted or bool(cache.get(k, {}).get("el"))
+        return [t for t in tracks if keep(t)]
+
     def enrich_previews(self, tracks: list[dict]) -> None:
         """Треки Last.fm не имеют аудио. Ищем тот же трек на Deezer (строгое совпадение исполнителя
         и названия) и подставляем 30-секундное превью. Ссылки Deezer на превью со временем протухают,
@@ -614,14 +645,14 @@ class Pipeline:
             cands.setdefault(f"{norm(t['artist'])}|{norm(t['title'])}", []).append(t)
         if not cands:
             return
-        cache = self._cache("track_previews.json")
+        cache = self._cache("track_previews2.json")
         now = utcnow()
         def age_h(e: dict) -> float:
             try:
                 return (now - datetime.fromisoformat(e["at"])).total_seconds() / 3600
             except Exception:
                 return 1e9
-        stale = [k for k in cands if k not in cache or age_h(cache[k]) > (336 if cache[k].get("miss") else 20)]
+        stale = [k for k in cands if k not in cache or age_h(cache[k]) > (168 if cache[k].get("miss") else 24 * 14)]
         stale.sort(key=lambda k: age_h(cache[k]) if k in cache else 1e10, reverse=True)
         used = fails = 0
         for k in stale[: self.settings.preview_lookups_per_run]:
@@ -637,19 +668,19 @@ class Pipeline:
             used += 1
         for k, arr in cands.items():
             e = cache.get(k)
-            if e and e.get("preview") and age_h(e) <= 48:
+            if e and e.get("deezer_id") and age_h(e) <= 24 * 30:
                 for t in arr:
-                    t["preview"] = e["preview"]
+                    t["preview"] = e.get("preview")
                     t["deezer_id"] = e.get("deezer_id")
                     t["cover"] = t["cover"] or e.get("cover")
         keep = {k: v for k, v in cache.items() if k in cands}
-        self._save_cache("track_previews.json", keep)
+        self._save_cache("track_previews2.json", keep)
         if fails:
             self.notes.append(f"Deezer: не удалось найти превью для части треков ({fails} запросов)")
 
     def step_releases(self) -> list[dict]:
         out: list[dict] = []
-        since = (self.today - timedelta(days=30)).isoformat()
+        since = (self.today - timedelta(days=90)).isoformat()
         until = self.today.isoformat()
         prev = read_json(self.public / "releases.json", {}).get("items", [])
         fails = 0
@@ -657,7 +688,7 @@ class Pipeline:
             nonlocal fails
             for g in self.genres:
                 try:
-                    for r in musicbrainz.recent_release_groups(self.http, g.mb_tag, since, until, 12):
+                    for r in musicbrainz.recent_release_groups(self.http, g.mb_tag, since, until, 15):
                         r["genre"] = g.id
                         out.append(r)
                 except SourceError:
@@ -847,7 +878,7 @@ class Pipeline:
         artists = self.compute_artists(reg)
         tracks = self.compute_tracks()
         # Теги Last.fm ставят слушатели, поэтому в «топ жанра» попадает поп-музыка. Убираем треки артистов, признанных неэлектронными.
-        tracks = [t for t in tracks if t["source"] == "deezer" or norm(t["artist"]) not in self.rejected_artists]
+        tracks = self.filter_electronic_tracks(tracks, artists)
         self.enrich_previews(tracks)
         releases = self.step_releases()
         labels = self.compute_labels(releases)

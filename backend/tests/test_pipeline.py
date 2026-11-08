@@ -317,3 +317,11 @@ def test_is_electronic_filters_pop_and_accepts_dance_music():
     assert not is_electronic(["pop", "rnb", "soul", "seen live", "house"], False)  # единственный электронный тег где-то в хвосте
     assert not is_electronic(["pop", "rnb"], True)
     assert is_electronic([], True) and not is_electronic([], False)
+
+
+def test_deezer_title_matching_ignores_mix_and_feat_suffixes():
+    from djpulse.collectors.deezer import _loose_title
+    assert _loose_title("Cola (Original Mix)") == _loose_title("Cola")
+    assert _loose_title("Guess featuring billie eilish") == _loose_title("Guess")
+    assert _loose_title("Track - Extended Mix") == _loose_title("Track")
+    assert _loose_title("Cola") != _loose_title("Gula")
