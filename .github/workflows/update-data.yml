@@ -41,6 +41,7 @@ jobs:
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
           DJPULSE_REPO: https://github.com/${{ github.repository }}
         run: python run_update.py
 
@@ -52,6 +53,18 @@ jobs:
           if git diff --cached --quiet; then echo "Изменений нет"; exit 0; fi
           git commit -m "data: update $(date -u +%F)"
           for i in 1 2 3; do git pull --rebase origin main && git push origin main && break || sleep 5; done
+
+      # Необязательно: если заданы секреты BOT_TOKEN и OWNER_CHAT_ID, при сбое придёт сообщение в Telegram.
+      - name: Notify owner on failure
+        if: failure()
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          OWNER_CHAT_ID: ${{ secrets.OWNER_CHAT_ID }}
+        run: |
+          if [ -z "$BOT_TOKEN" ] || [ -z "$OWNER_CHAT_ID" ]; then echo "Уведомления не настроены"; exit 0; fi
+          curl -s -o /dev/null "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${OWNER_CHAT_ID}" \
+            --data-urlencode "text=⚠️ DJ PULSE: ежедневный сбор данных завершился с ошибкой. ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" || true
 
   deploy:
     needs: collect
