@@ -63,6 +63,7 @@ export default function App() {
             : tab === 'tracks' ? <Tracks data={load.data} />
             : tab === 'analytics' ? <Analytics data={load.data} tab={aTab} setTab={(x) => go(`analytics/${x}`)} go={go} />
             : <Dashboard data={load.data} go={go} />}
+          <footer className="credit">DJ PULSE · Создатель проекта Фёдоров Иван</footer>
         </main>
       )}
       {load.state === 'ready' && searching && <SearchSheet data={load.data} onClose={() => setSearching(false)} go={go} />}
