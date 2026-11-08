@@ -73,7 +73,7 @@ export function TrackRow({ tr, playing, onPlay }: { tr: Track; playing: boolean;
       <div style={{ textAlign: 'right', minWidth: 44 }}>
         {tr.position_delta != null ? <Delta v={tr.position_delta} /> : <span className="delta na">—</span>}
       </div>
-      {(
+      {(tr.preview || tr.source === 'deezer') && (
         <button className={`play ${playing ? 'on' : ''}`} onClick={() => onPlay(tr)} aria-label={playing ? t('tracks.stop') : t('tracks.play')}>
           <Icon name={playing ? 'stop' : 'play'} size={16} />
         </button>

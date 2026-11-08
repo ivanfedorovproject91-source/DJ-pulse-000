@@ -286,8 +286,8 @@ class Settings:
     max_registry_artists: int = 600
     mb_discover_ru_limit: int = 40
     mb_discover_genres_per_run: int = 25   # российские артисты ищутся по части жанров за запуск (по кругу)
-    preview_lookups_per_run: int = 450      # поиск превью на Deezer для треков Last.fm
-    preview_per_genre: int = 6
+    preview_lookups_per_run: int = 1000      # поиск превью на Deezer для треков Last.fm
+    preview_per_genre: int = 15
     mb_lookups_per_run: int = 100
     mb_label_lookups_per_run: int = 80
     tracks_per_tag: int = 15

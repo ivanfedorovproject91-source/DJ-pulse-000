@@ -34,7 +34,7 @@ export async function freshPreview(t: Track): Promise<string | null> {
   const hit = mem.get(t.id);
   if (hit && Date.now() - hit.at < FRESH_MS) return hit.url;
   let url: string | undefined;
-  const id = deezerIdOf(t);
+  const id = t.deezer_id ? String(t.deezer_id) : deezerIdOf(t);
   if (id) {
     url = (await jsonp<DzTrack>(`https://api.deezer.com/track/${id}`)).preview;
   } else {

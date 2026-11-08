@@ -78,6 +78,7 @@ class Pipeline:
         self.hist = History(data / "history" / "history.json", self.settings.history_keep_days)
         self.state = SourceState(self.public / "sources.json")
         self.errors: list[str] = []
+        self.rejected_artists: set[str] = set()
         self.notes: list[str] = []   # информационные пометки (не сбои источников)
         self.lf = lastfm.LastFm(self.http, env["LASTFM_API_KEY"]) if env.get("LASTFM_API_KEY") else None
         self.yt_key = env.get("YOUTUBE_API_KEY")
@@ -532,6 +533,7 @@ class Pipeline:
                 continue  # о таком артисте нечего показать — не засоряем рейтинги
             electronic = is_electronic(a["tags"], bool(a["_lf_genres"]))
             if not electronic:
+                self.rejected_artists.add(norm(a["name"]))
                 continue  # поп/хип-хоп и т. п. — не электронная сцена, в рейтинги не берём
             result.append({
                 "id": a["id"], "name": a["name"], "country": a["country"], "country_source": a["country_source"],
@@ -638,6 +640,7 @@ class Pipeline:
             if e and e.get("preview") and age_h(e) <= 48:
                 for t in arr:
                     t["preview"] = e["preview"]
+                    t["deezer_id"] = e.get("deezer_id")
                     t["cover"] = t["cover"] or e.get("cover")
         keep = {k: v for k, v in cache.items() if k in cands}
         self._save_cache("track_previews.json", keep)
@@ -843,6 +846,8 @@ class Pipeline:
         genres = self.compute_genres()
         artists = self.compute_artists(reg)
         tracks = self.compute_tracks()
+        # Теги Last.fm ставят слушатели, поэтому в «топ жанра» попадает поп-музыка. Убираем треки артистов, признанных неэлектронными.
+        tracks = [t for t in tracks if t["source"] == "deezer" or norm(t["artist"]) not in self.rejected_artists]
         self.enrich_previews(tracks)
         releases = self.step_releases()
         labels = self.compute_labels(releases)
@@ -858,6 +863,12 @@ class Pipeline:
 
         generated = iso(utcnow())
         crit_ok = self.state.data.get("wikipedia", {}).get("status") == "ok"
+        # Разовые сбои отдельных запросов (503 MusicBrainz, один артист в Last.fm) не должны портить общий статус:
+        # данные при этом берутся из накопленного кэша. Они остаются видны в заметках и на панели источников.
+        soft = [e for e in self.errors if e.startswith("lastfm artist ") or e.startswith("musicbrainz")]
+        if soft and len(soft) < 25:
+            self.errors = [e for e in self.errors if e not in soft]
+            self.notes.extend(soft[:10])
         any_error = bool(self.errors)
         status = "ok" if crit_ok and not any_error else ("partial" if crit_ok or any(
             s.get("status") == "ok" for s in self.state.data.values()) else "failed")

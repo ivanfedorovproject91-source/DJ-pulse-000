@@ -81,6 +81,7 @@ export interface Track {
   cover: string | null;
   url: string | null;
   preview: string | null;
+  deezer_id?: string | number | null;
   source: 'deezer' | 'lastfm';
   chart: string;
   genre: string | null;

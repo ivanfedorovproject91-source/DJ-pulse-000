@@ -39,7 +39,6 @@ export default function Tracks({ data }: { data: AppData }) {
     return [...filtered].sort((a, b) => (a.source === b.source ? a.chart_position - b.chart_position : a.source === 'deezer' ? -1 : 1));
   }, [filtered, tab]);
 
-  const hasDelta = data.tracks.some((x) => x.position_delta != null);
   const releases = data.releases.filter((r) => !genre || r.genre === genre);
 
   return (
@@ -79,12 +78,15 @@ export default function Tracks({ data }: { data: AppData }) {
       <p className="note" id="country-na" style={{ marginBottom: 6 }}>{t('tracks.country.na')}. {Number(period) > 0 ? t('tracks.period.note') : ''}</p>
       <p className="note" style={{ marginBottom: 12 }}>{t('tracks.deezer.note')}</p>
 
+      {genre && tab === 'charts' && <p className="note" style={{ marginBottom: 12 }}>{t('tracks.tag.note')}</p>}
+      {!(tab === 'new' && !list.length && releases.length) && (
       <div className="panel">
         {list.length ? list.slice(0, 60).map((x) => <TrackRow key={x.id} tr={x} playing={audio.playing === x.id} onPlay={audio.toggle} />)
-          : <Empty>{tab === 'rising' && !hasDelta ? t('tracks.rising.none') : t('tracks.none')}</Empty>}
+          : <Empty>{tab === 'rising' ? t('tracks.rising.none') : t('tracks.none')}</Empty>}
       </div>
+      )}
 
-      {tab === 'new' && (
+      {(tab === 'new' || (tab === 'charts' && genre)) && (
         <section className="sec" style={{ marginTop: 22 }}>
           <SecHead title={t('section.releases')} note="MusicBrainz" />
           <div className="panel">
