@@ -1,1 +1,93 @@
-[]
+[
+ {
+  "date": "2026-11-09",
+  "from": "stable",
+  "genre": "tribal-house",
+  "name": "Tribal House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "rising",
+  "genre": "jackin-house",
+  "name": "Jackin House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "declining",
+  "genre": "melodic-techno",
+  "name": "Melodic Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "declining",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "rising",
+  "genre": "dream-trance",
+  "name": "Dream Trance",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "stable",
+  "genre": "liquid-funk",
+  "name": "Liquid Funk",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "stable",
+  "genre": "grime",
+  "name": "Grime",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "declining",
+  "genre": "trap-edm",
+  "name": "Trap (EDM)",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "stable",
+  "genre": "hardcore",
+  "name": "Hardcore / Gabber",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "declining",
+  "genre": "italo-disco",
+  "name": "Italo Disco",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "rising",
+  "genre": "electro",
+  "name": "Electro",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "stable",
+  "genre": "balearic",
+  "name": "Balearic Beat",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-09",
+  "from": "declining",
+  "genre": "gqom",
+  "name": "Gqom",
+  "to": "stable"
+ }
+]
