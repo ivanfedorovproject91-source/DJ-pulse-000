@@ -605,6 +605,7 @@ class Pipeline:
         """В треках по тегу жанра оставляем только артистов с электронными тегами. Неизвестных проверяем по Last.fm
         (результат кэшируется), непроверенные пока не показываем — лучше пусто, чем поп-музыка в «Tech House»."""
         accepted = {norm(a["name"]) for a in artists}
+        artist_genres = {norm(a["name"]): set(a.get("genres") or []) for a in artists}
         cache = self._cache("track_artist_class.json")
         names = {}
         for t in tracks:
@@ -629,7 +630,10 @@ class Pipeline:
             k = norm(t["artist"])
             if k in self.rejected_artists:
                 return False
-            return k in accepted or bool(cache.get(k, {}).get("el"))
+            if k in accepted:
+                # Трек в «Techno» должен быть от артиста, которого источники относят к Techno, а не к соседнему жанру.
+                return not artist_genres.get(k) or t["genre"] in artist_genres[k]
+            return bool(cache.get(k, {}).get("el"))
         return [t for t in tracks if keep(t)]
 
     def enrich_previews(self, tracks: list[dict]) -> None:

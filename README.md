@@ -66,20 +66,15 @@ GitHub Actions (по расписанию)           GitHub Pages               
 
 ### Шаг 6. Cloudflare (бесплатный аккаунт, карта не нужна)
 1. Зарегистрируйтесь на cloudflare.com.
-2. **Storage & Databases → KV → Create** → имя `dj-pulse-subs` → скопируйте **ID** и вставьте в файл `bot/worker/wrangler.toml` вместо `PASTE_KV_NAMESPACE_ID_HERE` (можно прямо на GitHub: открыть файл → карандаш → Commit).
-3. **My Profile → API Tokens → Create Token → шаблон «Edit Cloudflare Workers»** → скопируйте токен.
-4. **Account ID** виден на главной странице Workers & Pages (правая колонка).
+2. **My Profile → API Tokens → Create Token → шаблон «Edit Cloudflare Workers»** → скопируйте токен.
+3. **Account ID** виден на главной странице Workers & Pages (правая колонка).
+4. Один раз задайте адрес-поддомен: **Workers & Pages → Account details → Change** (любое имя).
+Хранилище подписчиков создаётся автоматически.
 
-### Шаг 7. Секреты бота и публикация
-В GitHub добавьте ещё четыре секрета (Settings → Secrets → Actions): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `BOT_TOKEN` (из BotFather), `WEBHOOK_SECRET` (ваше секретное слово).
-Затем **Actions → Deploy bot → Run workflow**. В логе будет адрес вида `https://dj-pulse-bot.ИМЯ.workers.dev`.
-
-### Шаг 8. Подключить бота и Mini App
-1. Откройте в браузере `https://dj-pulse-bot.ИМЯ.workers.dev/setup/ВАШ_СЕКРЕТ` — должно ответить `{"webhook":true,"menu":true,"commands":true}`.
-   Это включает вебхук, **кнопку меню Mini App** и команды бота.
-2. Откройте **Settings → Secrets and variables → Actions → Variables → New variable**: имя `VITE_API_URL`, значение — адрес воркера (без `/` на конце).
-3. **Actions → Deploy app → Run workflow** (чтобы приложение узнало адрес воркера).
-4. В Telegram напишите боту `/start` → кнопка **«ОТКРЫТЬ DJ PULSE»** откроет приложение внутри Telegram.
+### Шаг 7. Секреты и запуск
+В GitHub: Settings → Secrets and variables → Actions → New repository secret. Добавьте четыре секрета: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `BOT_TOKEN` (из BotFather), `WEBHOOK_SECRET` (ваше секретное слово).
+Затем **Actions → Deploy bot → Run workflow**. Один запуск делает всё: публикует бота, подключает его к Telegram (вебхук, кнопка меню, команды) и сообщает приложению его адрес. Ничего больше вручную делать не нужно.
+Потом напишите боту `/start` — кнопка **«ОТКРЫТЬ DJ PULSE»** откроет приложение.
 
 Готово. Данные обновляются сами каждый день (07:30 МСК), новости и релизы — каждые 6 часов, дайджест уходит подписчикам в 09:00 МСК.
 

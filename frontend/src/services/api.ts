@@ -1,7 +1,21 @@
 import { getInitData } from './telegram';
 import type { Prefs } from './prefs';
 
-const API = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+let API = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ?? '';
+
+/** Адрес бота: из переменной сборки или из data/bot.json, который записывает workflow «Deploy bot». */
+export async function loadApiConfig(): Promise<void> {
+  if (API) return;
+  try {
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), 3000);
+    const res = await fetch(`${import.meta.env.BASE_URL}data/bot.json`, { cache: 'no-cache', signal: ctl.signal });
+    clearTimeout(timer);
+    if (!res.ok) return;
+    const j = (await res.json()) as { api?: unknown };
+    if (typeof j.api === 'string' && /^https:\/\//.test(j.api)) API = j.api.replace(/\/$/, '');
+  } catch { /* бот не подключён — дайджест недоступен, остальное работает */ }
+}
 
 export type SyncResult = 'ok' | 'no-api' | 'no-telegram' | 'error' | 'unauthorized';
 
@@ -26,4 +40,4 @@ export async function saveDigestPrefs(prefs: Prefs): Promise<SyncResult> {
   }
 }
 
-export const apiConfigured = Boolean(API);
+export const isApiConfigured = () => Boolean(API);

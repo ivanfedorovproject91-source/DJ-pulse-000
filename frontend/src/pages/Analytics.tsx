@@ -6,7 +6,7 @@ import { SourcesList } from '../components/Shell';
 import { Events, Labels } from './Scene';
 import { resetOnboarding } from '../components/Onboarding';
 import { Empty, SecHead, Seg, SourceTags, Toggle } from '../components/ui';
-import { apiConfigured, saveDigestPrefs, type SyncResult } from '../services/api';
+import { isApiConfigured, saveDigestPrefs, type SyncResult } from '../services/api';
 import { useI18n, type Key } from '../services/i18n';
 import { flag, fmtNum } from '../services/format';
 import { DIGEST_SECTIONS, SECTIONS, usePrefs, type DigestSection, type Lang } from '../services/prefs';
@@ -245,7 +245,7 @@ function Settings({ data }: { data: AppData }) {
         )}
         <button className="btn ghost sm" style={{ marginTop: 14 }} onClick={() => { resetOnboarding(); window.location.reload(); }}>{t('onb.again')}</button>
         {!inTelegram() && <button className="btn" style={{ marginTop: 14 }} disabled={busy || !dirty} onClick={() => void save()}>{t('settings.digest.save')}</button>}
-        {inTelegram() && !dirty && result !== 'ok' && !apiConfigured && <p className="note" style={{ marginTop: 10 }}>{t('settings.digest.noapi')}</p>}
+        {inTelegram() && !dirty && result !== 'ok' && !isApiConfigured() && <p className="note" style={{ marginTop: 10 }}>{t('settings.digest.noapi')}</p>}
         {result && <p className="note" style={{ marginTop: 10, color: result === 'ok' ? 'var(--up)' : 'var(--warn)' }}>{t(msg[result])}</p>}
       </section>
 
