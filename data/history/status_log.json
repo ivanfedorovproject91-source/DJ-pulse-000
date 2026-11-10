@@ -89,5 +89,152 @@
   "genre": "gqom",
   "name": "Gqom",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "emerging",
+  "genre": "chicago-house",
+  "name": "Chicago House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "stable",
+  "genre": "electro-house",
+  "name": "Electro House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "stable",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "rising",
+  "genre": "tribal-house",
+  "name": "Tribal House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "stable",
+  "genre": "big-room-house",
+  "name": "Big Room House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "stable",
+  "genre": "latin-house",
+  "name": "Latin House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "rising",
+  "genre": "slap-house",
+  "name": "Slap House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "stable",
+  "genre": "jackin-house",
+  "name": "Jackin House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "rising",
+  "genre": "detroit-techno",
+  "name": "Detroit Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "emerging",
+  "genre": "dub-techno",
+  "name": "Dub Techno",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "stable",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "emerging",
+  "genre": "dream-trance",
+  "name": "Dream Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "declining",
+  "genre": "speed-garage",
+  "name": "Speed Garage",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "rising",
+  "genre": "hands-up",
+  "name": "Hands Up",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "emerging",
+  "genre": "electro",
+  "name": "Electro",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "rising",
+  "genre": "balearic",
+  "name": "Balearic Beat",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "declining",
+  "genre": "downtempo",
+  "name": "Downtempo",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "declining",
+  "genre": "idm",
+  "name": "IDM",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "declining",
+  "genre": "lo-fi-house",
+  "name": "Lo-Fi House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "stable",
+  "genre": "leftfield",
+  "name": "Leftfield",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-10",
+  "from": "declining",
+  "genre": "amapiano",
+  "name": "Amapiano",
+  "to": "stable"
  }
 ]
