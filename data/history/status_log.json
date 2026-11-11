@@ -236,5 +236,103 @@
   "genre": "amapiano",
   "name": "Amapiano",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "rising",
+  "genre": "chicago-house",
+  "name": "Chicago House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "stable",
+  "genre": "tribal-house",
+  "name": "Tribal House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "declining",
+  "genre": "big-room-house",
+  "name": "Big Room House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "stable",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "rising",
+  "genre": "techno",
+  "name": "Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "rising",
+  "genre": "dub-techno",
+  "name": "Dub Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "rising",
+  "genre": "acid-techno",
+  "name": "Acid Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "emerging",
+  "genre": "hard-trance",
+  "name": "Hard Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "rising",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "rising",
+  "genre": "liquid-funk",
+  "name": "Liquid Funk",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "emerging",
+  "genre": "hands-up",
+  "name": "Hands Up",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "rising",
+  "genre": "electro",
+  "name": "Electro",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "stable",
+  "genre": "synthwave",
+  "name": "Synthwave",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-11",
+  "from": "stable",
+  "genre": "indie-dance",
+  "name": "Indie Dance",
+  "to": "rising"
  }
 ]
