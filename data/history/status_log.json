@@ -334,5 +334,89 @@
   "genre": "indie-dance",
   "name": "Indie Dance",
   "to": "rising"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "declining",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "rising",
+  "genre": "tribal-house",
+  "name": "Tribal House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "stable",
+  "genre": "minimal-house",
+  "name": "Minimal House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "declining",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "declining",
+  "genre": "psytrance",
+  "name": "Psytrance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "stable",
+  "genre": "goa-trance",
+  "name": "Goa Trance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "stable",
+  "genre": "two-step",
+  "name": "2-Step Garage",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "stable",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "declining",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "rising",
+  "genre": "hands-up",
+  "name": "Hands Up",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "rising",
+  "genre": "synthwave",
+  "name": "Synthwave",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-12",
+  "from": "declining",
+  "genre": "hyperpop",
+  "name": "Hyperpop",
+  "to": "stable"
  }
 ]
