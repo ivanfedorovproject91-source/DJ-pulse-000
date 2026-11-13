@@ -1,63 +1,63 @@
 {
  "deezer": {
-  "artists_loaded": 415,
-  "last_attempt": "2026-11-12T13:10:02Z",
-  "last_success": "2026-11-12T13:10:02Z",
+  "artists_loaded": 414,
+  "last_attempt": "2026-11-13T12:33:55Z",
+  "last_success": "2026-11-13T12:33:55Z",
   "message": null,
   "status": "ok",
   "tracks": 50
  },
  "lastfm": {
-  "artists_loaded": 525,
+  "artists_loaded": 526,
   "genres_loaded": 114,
-  "last_attempt": "2026-11-12T13:08:33Z",
-  "last_success": "2026-11-12T13:08:33Z",
+  "last_attempt": "2026-11-13T12:32:57Z",
+  "last_success": "2026-11-13T12:32:57Z",
   "message": null,
   "status": "ok"
  },
  "musicbrainz": {
-  "artists_cached": 924,
-  "last_attempt": "2026-11-13T06:53:28Z",
-  "last_success": "2026-11-13T06:53:28Z",
+  "artists_cached": 925,
+  "last_attempt": "2026-11-13T12:37:02Z",
+  "last_success": "2026-11-13T12:37:02Z",
   "message": null,
-  "releases": 507,
+  "releases": 509,
   "status": "ok"
  },
  "rss:attack": {
-  "last_attempt": "2026-11-13T06:51:02Z",
-  "last_success": "2026-11-12T19:59:03Z",
-  "message": "www.attackmagazine.com: недоступен (HTTP 503 от www.attackmagazine.com)",
+  "last_attempt": "2026-11-13T12:37:05Z",
+  "last_success": "2026-11-13T12:37:05Z",
+  "message": null,
   "name": "Attack Magazine",
-  "status": "error"
+  "status": "ok"
  },
  "rss:djmag": {
-  "last_attempt": "2026-11-13T06:50:35Z",
-  "last_success": "2026-11-13T06:50:35Z",
+  "last_attempt": "2026-11-13T12:37:05Z",
+  "last_success": "2026-11-13T12:37:05Z",
   "message": null,
   "name": "DJ Mag",
   "status": "ok"
  },
  "rss:mixmag": {
-  "last_attempt": "2026-11-13T06:50:35Z",
-  "last_success": "2026-11-13T06:50:35Z",
+  "last_attempt": "2026-11-13T12:37:04Z",
+  "last_success": "2026-11-13T12:37:04Z",
   "message": null,
   "name": "Mixmag",
   "status": "ok"
  },
  "ticketmaster": {
-  "last_attempt": "2026-11-12T13:13:32Z",
+  "last_attempt": "2026-11-13T12:37:04Z",
   "message": "ключ TICKETMASTER_API_KEY не задан — события не показываются (необязательный источник)",
   "status": "disabled"
  },
  "wikipedia": {
   "genres_loaded": 86,
-  "last_attempt": "2026-11-12T13:02:39Z",
-  "last_success": "2026-11-12T13:02:39Z",
+  "last_attempt": "2026-11-13T12:28:04Z",
+  "last_success": "2026-11-13T12:28:04Z",
   "message": null,
   "status": "ok"
  },
  "youtube": {
-  "last_attempt": "2026-11-12T13:10:02Z",
+  "last_attempt": "2026-11-13T12:33:55Z",
   "message": "ключ YOUTUBE_API_KEY не задан — источник отключён (необязательный)",
   "status": "disabled"
  }

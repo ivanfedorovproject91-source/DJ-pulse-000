@@ -1,16 +1,16 @@
 {
  "counts": {
-  "artists": 545,
+  "artists": 543,
   "genres": 114,
   "news": 22,
-  "releases": 365,
+  "releases": 367,
   "tracks": 1191
  },
- "data_date": "2026-11-12",
+ "data_date": "2026-11-13",
  "demo": false,
  "errors": [],
- "generated_at": "2026-11-12T13:13:38Z",
- "history_days_max": 371,
+ "generated_at": "2026-11-13T12:37:08Z",
+ "history_days_max": 372,
  "notes": [
   "Melodic House: статья «Progressive house» уже занята жанром Progressive House — тренд не считается",
   "Bass House: нет отдельной статьи в Wikipedia — тренд не считается",

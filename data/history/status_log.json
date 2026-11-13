@@ -418,5 +418,26 @@
   "genre": "hyperpop",
   "name": "Hyperpop",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-13",
+  "from": "stable",
+  "genre": "garage-house",
+  "name": "Garage House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-13",
+  "from": "stable",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-13",
+  "from": "stable",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "rising"
  }
 ]
