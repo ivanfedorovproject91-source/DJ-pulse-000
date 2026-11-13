@@ -17,29 +17,29 @@
  },
  "musicbrainz": {
   "artists_cached": 925,
-  "last_attempt": "2026-11-13T12:37:02Z",
-  "last_success": "2026-11-13T12:37:02Z",
+  "last_attempt": "2026-11-13T19:49:02Z",
+  "last_success": "2026-11-13T19:49:02Z",
   "message": null,
-  "releases": 509,
+  "releases": 506,
   "status": "ok"
  },
  "rss:attack": {
-  "last_attempt": "2026-11-13T12:37:05Z",
-  "last_success": "2026-11-13T12:37:05Z",
+  "last_attempt": "2026-11-13T19:45:57Z",
+  "last_success": "2026-11-13T19:45:57Z",
   "message": null,
   "name": "Attack Magazine",
   "status": "ok"
  },
  "rss:djmag": {
-  "last_attempt": "2026-11-13T12:37:05Z",
-  "last_success": "2026-11-13T12:37:05Z",
+  "last_attempt": "2026-11-13T19:45:57Z",
+  "last_success": "2026-11-13T19:45:57Z",
   "message": null,
   "name": "DJ Mag",
   "status": "ok"
  },
  "rss:mixmag": {
-  "last_attempt": "2026-11-13T12:37:04Z",
-  "last_success": "2026-11-13T12:37:04Z",
+  "last_attempt": "2026-11-13T19:45:56Z",
+  "last_success": "2026-11-13T19:45:56Z",
   "message": null,
   "name": "Mixmag",
   "status": "ok"
