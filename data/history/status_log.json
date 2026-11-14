@@ -439,5 +439,166 @@
   "genre": "tech-trance",
   "name": "Tech Trance",
   "to": "rising"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "rising",
+  "genre": "electro-house",
+  "name": "Electro House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "declining",
+  "genre": "funky-house",
+  "name": "Funky House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "big-room-house",
+  "name": "Big Room House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "rising",
+  "genre": "jackin-house",
+  "name": "Jackin House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "rising",
+  "genre": "garage-house",
+  "name": "Garage House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "declining",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "industrial-techno",
+  "name": "Industrial Techno",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "uplifting-trance",
+  "name": "Uplifting Trance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "hard-trance",
+  "name": "Hard Trance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "rising",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "emerging",
+  "genre": "neurofunk",
+  "name": "Neurofunk",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "uk-garage",
+  "name": "UK Garage",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "future-garage",
+  "name": "Future Garage",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "declining",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "hardstyle",
+  "name": "Hardstyle",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "hard-bounce",
+  "name": "Hard Bounce",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "hands-up",
+  "name": "Hands Up",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "italo-disco",
+  "name": "Italo Disco",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "declining",
+  "genre": "leftfield",
+  "name": "Leftfield",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-14",
+  "from": "stable",
+  "genre": "phonk",
+  "name": "Phonk",
+  "to": "rising"
  }
 ]
