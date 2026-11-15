@@ -600,5 +600,89 @@
   "genre": "phonk",
   "name": "Phonk",
   "to": "rising"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "stable",
+  "genre": "progressive-house",
+  "name": "Progressive House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "stable",
+  "genre": "funky-house",
+  "name": "Funky House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "declining",
+  "genre": "big-room-house",
+  "name": "Big Room House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "rising",
+  "genre": "minimal-house",
+  "name": "Minimal House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "stable",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "declining",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "declining",
+  "genre": "trance",
+  "name": "Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "declining",
+  "genre": "uplifting-trance",
+  "name": "Uplifting Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "emerging",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "stable",
+  "genre": "uk-bass",
+  "name": "UK Bass",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "rising",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-15",
+  "from": "stable",
+  "genre": "glitch",
+  "name": "Glitch",
+  "to": "declining"
  }
 ]
