@@ -1,16 +1,18 @@
 {
  "counts": {
-  "artists": 543,
+  "artists": 540,
   "genres": 114,
   "news": 22,
-  "releases": 365,
-  "tracks": 1191
+  "releases": 373,
+  "tracks": 1175
  },
- "data_date": "2026-11-15",
+ "data_date": "2026-11-16",
  "demo": false,
- "errors": [],
- "generated_at": "2026-11-15T12:17:09Z",
- "history_days_max": 374,
+ "errors": [
+  "deezer: HTTP 403 от api.deezer.com"
+ ],
+ "generated_at": "2026-11-16T13:11:30Z",
+ "history_days_max": 375,
  "notes": [
   "Melodic House: статья «Progressive house» уже занята жанром Progressive House — тренд не считается",
   "Bass House: нет отдельной статьи в Wikipedia — тренд не считается",
@@ -40,8 +42,8 @@
   "Drift Phonk: статья «Phonk» уже занята жанром Phonk — тренд не считается",
   "Afro / Tribal Dance: нет отдельной статьи в Wikipedia — тренд не считается",
   "Psychedelic Bass: нет отдельной статьи в Wikipedia — тренд не считается",
-  "musicbrainz: musicbrainz.org: недоступен (HTTP 503 от musicbrainz.org)"
+  "Deezer: не удалось найти превью для части треков (5 запросов)"
  ],
  "schema": 1,
- "status": "ok"
+ "status": "partial"
 }

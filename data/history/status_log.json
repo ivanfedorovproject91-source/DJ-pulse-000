@@ -684,5 +684,82 @@
   "genre": "glitch",
   "name": "Glitch",
   "to": "declining"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "rising",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "declining",
+  "genre": "funky-house",
+  "name": "Funky House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "stable",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "rising",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "rising",
+  "genre": "grime",
+  "name": "Grime",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "declining",
+  "genre": "uk-bass",
+  "name": "UK Bass",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "stable",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "rising",
+  "genre": "hands-up",
+  "name": "Hands Up",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "declining",
+  "genre": "italo-disco",
+  "name": "Italo Disco",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "stable",
+  "genre": "chillout",
+  "name": "Chillout",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-16",
+  "from": "declining",
+  "genre": "glitch",
+  "name": "Glitch",
+  "to": "stable"
  }
 ]
