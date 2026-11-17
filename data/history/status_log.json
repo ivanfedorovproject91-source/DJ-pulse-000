@@ -761,5 +761,117 @@
   "genre": "glitch",
   "name": "Glitch",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "tech-house",
+  "name": "Tech House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "declining",
+  "genre": "organic-house",
+  "name": "Organic House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "declining",
+  "genre": "latin-house",
+  "name": "Latin House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "declining",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "uplifting-trance",
+  "name": "Uplifting Trance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "psytrance",
+  "name": "Psytrance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "declining",
+  "genre": "goa-trance",
+  "name": "Goa Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "liquid-funk",
+  "name": "Liquid Funk",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "uk-bass",
+  "name": "UK Bass",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "rising",
+  "genre": "hardcore",
+  "name": "Hardcore / Gabber",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "eurodance",
+  "name": "Eurodance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "rising",
+  "genre": "indie-dance",
+  "name": "Indie Dance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "stable",
+  "genre": "gqom",
+  "name": "Gqom",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-17",
+  "from": "rising",
+  "genre": "phonk",
+  "name": "Phonk",
+  "to": "stable"
  }
 ]
