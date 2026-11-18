@@ -873,5 +873,110 @@
   "genre": "phonk",
   "name": "Phonk",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "rising",
+  "genre": "tech-house",
+  "name": "Tech House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "stable",
+  "genre": "afro-house",
+  "name": "Afro House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "stable",
+  "genre": "chicago-house",
+  "name": "Chicago House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "stable",
+  "genre": "electro-house",
+  "name": "Electro House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "emerging",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "declining",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "rising",
+  "genre": "industrial-techno",
+  "name": "Industrial Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "stable",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "rising",
+  "genre": "psytrance",
+  "name": "Psytrance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "rising",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "declining",
+  "genre": "liquid-funk",
+  "name": "Liquid Funk",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "rising",
+  "genre": "uk-garage",
+  "name": "UK Garage",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "declining",
+  "genre": "hard-bounce",
+  "name": "Hard Bounce",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "stable",
+  "genre": "italo-dance",
+  "name": "Italo Dance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-18",
+  "from": "stable",
+  "genre": "leftfield",
+  "name": "Leftfield",
+  "to": "rising"
  }
 ]
