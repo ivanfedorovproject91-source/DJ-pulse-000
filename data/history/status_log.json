@@ -978,5 +978,96 @@
   "genre": "leftfield",
   "name": "Leftfield",
   "to": "rising"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "rising",
+  "genre": "afro-house",
+  "name": "Afro House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "rising",
+  "genre": "chicago-house",
+  "name": "Chicago House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "declining",
+  "genre": "electro-house",
+  "name": "Electro House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "rising",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "stable",
+  "genre": "slap-house",
+  "name": "Slap House",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "stable",
+  "genre": "hard-techno",
+  "name": "Hard Techno",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "stable",
+  "genre": "detroit-techno",
+  "name": "Detroit Techno",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "stable",
+  "genre": "industrial-techno",
+  "name": "Industrial Techno",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "stable",
+  "genre": "psytrance",
+  "name": "Psytrance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "declining",
+  "genre": "future-garage",
+  "name": "Future Garage",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "stable",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "declining",
+  "genre": "uk-bass",
+  "name": "UK Bass",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-19",
+  "from": "declining",
+  "genre": "italo-dance",
+  "name": "Italo Dance",
+  "to": "stable"
  }
 ]
