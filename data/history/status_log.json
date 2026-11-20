@@ -1069,5 +1069,89 @@
   "genre": "italo-dance",
   "name": "Italo Dance",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "stable",
+  "genre": "house",
+  "name": "House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "stable",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "stable",
+  "genre": "melodic-techno",
+  "name": "Melodic Techno",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "rising",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "stable",
+  "genre": "acid-techno",
+  "name": "Acid Techno",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "rising",
+  "genre": "two-step",
+  "name": "2-Step Garage",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "rising",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "stable",
+  "genre": "uk-bass",
+  "name": "UK Bass",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "stable",
+  "genre": "hard-bounce",
+  "name": "Hard Bounce",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "stable",
+  "genre": "hands-up",
+  "name": "Hands Up",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "stable",
+  "genre": "lo-fi-house",
+  "name": "Lo-Fi House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-20",
+  "from": "rising",
+  "genre": "gqom",
+  "name": "Gqom",
+  "to": "stable"
  }
 ]

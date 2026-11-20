@@ -1,16 +1,16 @@
 {
  "counts": {
-  "artists": 535,
+  "artists": 536,
   "genres": 114,
   "news": 23,
-  "releases": 368,
+  "releases": 367,
   "tracks": 1181
  },
- "data_date": "2026-11-19",
+ "data_date": "2026-11-20",
  "demo": false,
  "errors": [],
- "generated_at": "2026-11-19T13:50:06Z",
- "history_days_max": 378,
+ "generated_at": "2026-11-20T13:33:35Z",
+ "history_days_max": 379,
  "notes": [
   "Melodic House: статья «Progressive house» уже занята жанром Progressive House — тренд не считается",
   "Bass House: нет отдельной статьи в Wikipedia — тренд не считается",
@@ -39,8 +39,7 @@
   "Organic Downtempo: нет отдельной статьи в Wikipedia — тренд не считается",
   "Drift Phonk: статья «Phonk» уже занята жанром Phonk — тренд не считается",
   "Afro / Tribal Dance: нет отдельной статьи в Wikipedia — тренд не считается",
-  "Psychedelic Bass: нет отдельной статьи в Wikipedia — тренд не считается",
-  "musicbrainz: musicbrainz.org: недоступен (HTTP 503 от musicbrainz.org)"
+  "Psychedelic Bass: нет отдельной статьи в Wikipedia — тренд не считается"
  ],
  "schema": 1,
  "status": "ok"
