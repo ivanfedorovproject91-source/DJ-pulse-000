@@ -1153,5 +1153,124 @@
   "genre": "gqom",
   "name": "Gqom",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "declining",
+  "genre": "progressive-house",
+  "name": "Progressive House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "stable",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "stable",
+  "genre": "jackin-house",
+  "name": "Jackin House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "declining",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "declining",
+  "genre": "melodic-techno",
+  "name": "Melodic Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "stable",
+  "genre": "minimal-deep-tech",
+  "name": "Minimal / Deep Tech",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "stable",
+  "genre": "ebm",
+  "name": "EBM / Dark Electro",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "rising",
+  "genre": "uplifting-trance",
+  "name": "Uplifting Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "rising",
+  "genre": "psytrance",
+  "name": "Psytrance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "stable",
+  "genre": "neurofunk",
+  "name": "Neurofunk",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "declining",
+  "genre": "uk-bass",
+  "name": "UK Bass",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "rising",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "emerging",
+  "genre": "hands-up",
+  "name": "Hands Up",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "rising",
+  "genre": "eurodance",
+  "name": "Eurodance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "stable",
+  "genre": "italo-dance",
+  "name": "Italo Dance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "rising",
+  "genre": "leftfield",
+  "name": "Leftfield",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-21",
+  "from": "stable",
+  "genre": "baile-funk",
+  "name": "Baile Funk",
+  "to": "declining"
  }
 ]
