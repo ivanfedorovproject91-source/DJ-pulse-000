@@ -1272,5 +1272,68 @@
   "genre": "baile-funk",
   "name": "Baile Funk",
   "to": "declining"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "stable",
+  "genre": "melodic-techno",
+  "name": "Melodic Techno",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "rising",
+  "genre": "minimal-deep-tech",
+  "name": "Minimal / Deep Tech",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "stable",
+  "genre": "uplifting-trance",
+  "name": "Uplifting Trance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "stable",
+  "genre": "dream-trance",
+  "name": "Dream Trance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "declining",
+  "genre": "hardstyle",
+  "name": "Hardstyle",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "stable",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "declining",
+  "genre": "italo-dance",
+  "name": "Italo Dance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "stable",
+  "genre": "breakcore",
+  "name": "Breakcore",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-22",
+  "from": "stable",
+  "genre": "phonk",
+  "name": "Phonk",
+  "to": "declining"
  }
 ]
