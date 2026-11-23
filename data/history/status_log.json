@@ -1335,5 +1335,124 @@
   "genre": "phonk",
   "name": "Phonk",
   "to": "declining"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "stable",
+  "genre": "afro-house",
+  "name": "Afro House",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "declining",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "rising",
+  "genre": "jackin-house",
+  "name": "Jackin House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "declining",
+  "genre": "melodic-techno",
+  "name": "Melodic Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "stable",
+  "genre": "psytrance",
+  "name": "Psytrance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "rising",
+  "genre": "neurofunk",
+  "name": "Neurofunk",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "stable",
+  "genre": "uk-garage",
+  "name": "UK Garage",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "stable",
+  "genre": "trap-edm",
+  "name": "Trap (EDM)",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "stable",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "rising",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "declining",
+  "genre": "hard-bounce",
+  "name": "Hard Bounce",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "stable",
+  "genre": "balearic",
+  "name": "Balearic Beat",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "declining",
+  "genre": "chillout",
+  "name": "Chillout",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "stable",
+  "genre": "glitch",
+  "name": "Glitch",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "rising",
+  "genre": "breakcore",
+  "name": "Breakcore",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "stable",
+  "genre": "indie-dance",
+  "name": "Indie Dance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-23",
+  "from": "declining",
+  "genre": "baile-funk",
+  "name": "Baile Funk",
+  "to": "stable"
  }
 ]
