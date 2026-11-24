@@ -1454,5 +1454,117 @@
   "genre": "baile-funk",
   "name": "Baile Funk",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "stable",
+  "genre": "organic-house",
+  "name": "Organic House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "stable",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "stable",
+  "genre": "jackin-house",
+  "name": "Jackin House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "rising",
+  "genre": "hard-techno",
+  "name": "Hard Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "rising",
+  "genre": "industrial-techno",
+  "name": "Industrial Techno",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "declining",
+  "genre": "acid-techno",
+  "name": "Acid Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "rising",
+  "genre": "uplifting-trance",
+  "name": "Uplifting Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "rising",
+  "genre": "dream-trance",
+  "name": "Dream Trance",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "emerging",
+  "genre": "neurofunk",
+  "name": "Neurofunk",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "declining",
+  "genre": "trap-edm",
+  "name": "Trap (EDM)",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "stable",
+  "genre": "speed-garage",
+  "name": "Speed Garage",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "stable",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "rising",
+  "genre": "balearic",
+  "name": "Balearic Beat",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "stable",
+  "genre": "italo-dance",
+  "name": "Italo Dance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "rising",
+  "genre": "glitch",
+  "name": "Glitch",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-24",
+  "from": "stable",
+  "genre": "baile-funk",
+  "name": "Baile Funk",
+  "to": "declining"
  }
 ]
