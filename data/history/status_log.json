@@ -1566,5 +1566,117 @@
   "genre": "baile-funk",
   "name": "Baile Funk",
   "to": "declining"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "rising",
+  "genre": "organic-house",
+  "name": "Organic House",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "emerging",
+  "genre": "afro-house",
+  "name": "Afro House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "stable",
+  "genre": "tribal-house",
+  "name": "Tribal House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "stable",
+  "genre": "funky-house",
+  "name": "Funky House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "emerging",
+  "genre": "industrial-techno",
+  "name": "Industrial Techno",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "stable",
+  "genre": "uplifting-trance",
+  "name": "Uplifting Trance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "stable",
+  "genre": "goa-trance",
+  "name": "Goa Trance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "emerging",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "stable",
+  "genre": "neurofunk",
+  "name": "Neurofunk",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "declining",
+  "genre": "uk-garage",
+  "name": "UK Garage",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "rising",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "stable",
+  "genre": "uk-bass",
+  "name": "UK Bass",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "stable",
+  "genre": "hardstyle",
+  "name": "Hardstyle",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "emerging",
+  "genre": "frenchcore",
+  "name": "Frenchcore",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "declining",
+  "genre": "italo-dance",
+  "name": "Italo Dance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-25",
+  "from": "rising",
+  "genre": "indie-dance",
+  "name": "Indie Dance",
+  "to": "stable"
  }
 ]
