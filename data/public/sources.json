@@ -1,1 +1,56 @@
-{"deezer":{"last_attempt":"2026-11-26T14:16:15Z","last_success":"2026-11-26T14:16:15Z","message":null,"status":"ok","tracks":50},"lastfm":{"genres_loaded":114,"last_attempt":"2026-11-26T14:14:59Z","last_success":"2026-11-26T14:14:59Z","message":null,"status":"ok"},"musicbrainz":{"last_attempt":"2026-11-26T14:20:16Z","last_success":"2026-11-26T14:20:16Z","message":null,"releases":505,"status":"ok"},"rss:attack":{"last_attempt":"2026-11-26T14:20:20Z","last_success":"2026-11-26T14:20:20Z","message":null,"name":"Attack Magazine","status":"ok"},"rss:djmag":{"last_attempt":"2026-11-26T14:20:19Z","last_success":"2026-11-26T14:20:19Z","message":null,"name":"DJ Mag","status":"ok"},"rss:mixmag":{"last_attempt":"2026-11-26T14:20:19Z","last_success":"2026-11-26T14:20:19Z","message":null,"name":"Mixmag","status":"ok"},"ticketmaster":{"last_attempt":"2026-11-26T14:20:18Z","message":"ключ TICKETMASTER_API_KEY не задан — события не показываются (необязательный источник)","status":"disabled"},"wikipedia":{"genres_loaded":86,"last_attempt":"2026-11-26T14:09:15Z","last_success":"2026-11-26T14:09:15Z","message":null,"status":"ok"}}
+{
+ "deezer": {
+  "last_attempt": "2026-11-26T14:16:15Z",
+  "last_success": "2026-11-26T14:16:15Z",
+  "message": null,
+  "status": "ok",
+  "tracks": 50
+ },
+ "lastfm": {
+  "genres_loaded": 114,
+  "last_attempt": "2026-11-26T14:14:59Z",
+  "last_success": "2026-11-26T14:14:59Z",
+  "message": null,
+  "status": "ok"
+ },
+ "musicbrainz": {
+  "last_attempt": "2026-11-26T21:41:49Z",
+  "last_success": "2026-11-26T21:41:49Z",
+  "message": null,
+  "releases": 482,
+  "status": "ok"
+ },
+ "rss:attack": {
+  "last_attempt": "2026-11-26T21:38:17Z",
+  "last_success": "2026-11-26T21:38:17Z",
+  "message": null,
+  "name": "Attack Magazine",
+  "status": "ok"
+ },
+ "rss:djmag": {
+  "last_attempt": "2026-11-26T21:38:16Z",
+  "last_success": "2026-11-26T21:38:16Z",
+  "message": null,
+  "name": "DJ Mag",
+  "status": "ok"
+ },
+ "rss:mixmag": {
+  "last_attempt": "2026-11-26T21:38:16Z",
+  "last_success": "2026-11-26T21:38:16Z",
+  "message": null,
+  "name": "Mixmag",
+  "status": "ok"
+ },
+ "ticketmaster": {
+  "last_attempt": "2026-11-26T14:20:18Z",
+  "message": "ключ TICKETMASTER_API_KEY не задан — события не показываются (необязательный источник)",
+  "status": "disabled"
+ },
+ "wikipedia": {
+  "genres_loaded": 86,
+  "last_attempt": "2026-11-26T14:09:15Z",
+  "last_success": "2026-11-26T14:09:15Z",
+  "message": null,
+  "status": "ok"
+ }
+}
