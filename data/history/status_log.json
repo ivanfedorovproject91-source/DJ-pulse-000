@@ -1678,5 +1678,124 @@
   "genre": "indie-dance",
   "name": "Indie Dance",
   "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "emerging",
+  "genre": "organic-house",
+  "name": "Organic House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "declining",
+  "genre": "future-house",
+  "name": "Future House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "stable",
+  "genre": "brazilian-bass",
+  "name": "Brazilian Bass",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "emerging",
+  "genre": "slap-house",
+  "name": "Slap House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "stable",
+  "genre": "minimal-house",
+  "name": "Minimal House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "stable",
+  "genre": "minimal-deep-tech",
+  "name": "Minimal / Deep Tech",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "emerging",
+  "genre": "detroit-techno",
+  "name": "Detroit Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "emerging",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "declining",
+  "genre": "uplifting-trance",
+  "name": "Uplifting Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "declining",
+  "genre": "hard-trance",
+  "name": "Hard Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "emerging",
+  "genre": "dream-trance",
+  "name": "Dream Trance",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "stable",
+  "genre": "future-garage",
+  "name": "Future Garage",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "stable",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "declining",
+  "genre": "uk-bass",
+  "name": "UK Bass",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "stable",
+  "genre": "disco",
+  "name": "Disco",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "stable",
+  "genre": "indie-dance",
+  "name": "Indie Dance",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-26",
+  "from": "stable",
+  "genre": "gqom",
+  "name": "Gqom",
+  "to": "declining"
  }
 ]
