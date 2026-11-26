@@ -10,7 +10,7 @@ def _pct(v: float) -> str:
     return f"{v:+.0f}%"
 
 
-def build_insights(genres: list[dict], artists: list[dict], tracks: list[dict],
+def build_insights(genres: list[dict], tracks: list[dict],
                    releases: list[dict], today: date) -> dict:
     items: list[dict] = []
     gname = {g["id"]: g["name"] for g in genres}
@@ -42,23 +42,6 @@ def build_insights(genres: list[dict], artists: list[dict], tracks: list[dict],
                       "body": f"Просмотры статьи о жанре за 30 дней изменились на {_pct(g['changes']['d30'])}.",
                       "period_days": 30, "sources": ["Wikipedia Pageviews"],
                       "evidence": [{"label": "Wikipedia: просмотры, 30 дн.", "value": _pct(g["changes"]["d30"])}]})
-
-    # 3. Жанры с несколькими растущими артистами
-    by_genre: dict[str, list[dict]] = {}
-    for a in artists:
-        if a.get("rising"):
-            for gid in a.get("genres", []):
-                by_genre.setdefault(gid, []).append(a)
-    for gid, arr in sorted(by_genre.items(), key=lambda kv: -len(kv[1])):
-        if len(arr) >= 2 and gid in gname:
-            names = ", ".join(a["name"] for a in arr[:4])
-            items.append({"id": f"artists-rise-{gid}", "type": "artists_rise", "genre": gid,
-                          "title": f"{gname[gid]}: несколько артистов растут",
-                          "body": f"За 30 дней заметный рост показателей у {len(arr)} артистов жанра: {names}.",
-                          "period_days": 30,
-                          "sources": sorted({s for a in arr for s in a["rising"]["sources"]}),
-                          "evidence": [{"label": a["name"], "value": a["rising"]["reason"]} for a in arr[:4]]})
-            break
 
     # 4. Новые релизы
     cnt: dict[str, int] = {}

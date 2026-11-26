@@ -1,7 +1,6 @@
-import BarChart from '../charts/BarChart';
 import LineChart from '../charts/LineChart';
 import { SERIES } from '../charts/palette';
-import { ArtistRow, ReleaseRow, TrackRow } from '../components/Rows';
+import { ReleaseRow, TrackRow } from '../components/Rows';
 import { Delta, Empty, FavStar, SecHead, SourceTags, StatusBadge } from '../components/ui';
 import { useAudio } from '../hooks/useAudio';
 import { useI18n, type Key } from '../services/i18n';
@@ -19,18 +18,8 @@ export default function GenreDetail({ data, id, go }: { data: AppData; id: strin
   if (!g) return <Empty title={t('tracks.none')} />;
 
   const tracks = data.tracks.filter((x) => x.genre === g.id).sort((a, b) => a.chart_position - b.chart_position).slice(0, 8);
-  const artists = data.artists.filter((a) => a.genres.includes(g.id)).sort((a, b) => (b.popularity ?? -1) - (a.popularity ?? -1)).slice(0, 6);
   const releases = data.releases.filter((r) => r.genre === g.id).slice(0, 6);
   const lfPoints = g.history.lf_reach;
-  // «Новые имена»: рост интереса, но популярность пока невысокая — то, ради чего стоит следить за жанром.
-  const newNames = data.artists
-    .filter((a) => a.genres.includes(g.id) && a.rising && a.popularity != null && a.popularity <= 40)
-    .sort((a, b) => (b.growth_30d ?? 0) - (a.growth_30d ?? 0)).slice(0, 5);
-  // География: происхождение артистов и география слушателей — разные данные, показываются раздельно.
-  const geo = (kind: 'origin' | 'listeners') => data.countries
-    .map((c) => ({ id: c.code, label: lang === 'ru' ? c.name_ru : c.name_en,
-      value: (c[kind]?.genres.find((x) => x.genre === g.id)?.count ?? 0) as number | null }))
-    .filter((x) => (x.value ?? 0) > 0).sort((a, b) => (b.value as number) - (a.value as number)).slice(0, 8);
   const related = data.genres.filter((x) => x.family && x.family === g.family && x.id !== g.id)
     .sort((a, b) => (b.score ?? -1) - (a.score ?? -1)).slice(0, 5);
   const share = () => {
@@ -40,9 +29,6 @@ export default function GenreDetail({ data, id, go }: { data: AppData; id: strin
     openLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
   };
   const labels = data.labels.filter((l) => l.genres.some((x) => x.genre === g.id)).sort((a, b) => b.n_releases - a.n_releases).slice(0, 5);
-  const origin = geo('origin');
-  const listeners = geo('listeners');
-
   return (
     <>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
@@ -114,35 +100,6 @@ export default function GenreDetail({ data, id, go }: { data: AppData; id: strin
         <SecHead title={t('genre.tracks')} />
         <div className="panel">
           {tracks.length ? tracks.map((x) => <TrackRow key={x.id} tr={x} playing={audio.playing === x.id} onPlay={audio.toggle} />) : <Empty>{t('genre.tracks.none')}</Empty>}
-        </div>
-      </section>
-
-      {newNames.length > 0 && (
-        <section className="sec">
-          <SecHead title={t('genre.newnames')} />
-          <div className="panel">
-            {newNames.map((a, i) => <ArtistRow key={a.id} a={a} rank={i + 1} badge={t('genre.new')} onOpen={() => go(`artist/${a.id}`)} />)}
-          </div>
-          <p className="note" style={{ marginTop: 8 }}>{t('genre.newnames.note')}</p>
-        </section>
-      )}
-
-      <section className="sec">
-        <SecHead title={t('genre.where')} />
-        <div className="panel pad">
-          {origin.length || listeners.length ? (
-            <>
-              {origin.length > 0 && <><p className="note" style={{ marginBottom: 6 }}>{t('genre.where.origin')}</p><BarChart items={origin} fmt={(v) => String(Math.round(v))} /></>}
-              {listeners.length > 0 && <><p className="note" style={{ margin: '12px 0 6px' }}>{t('genre.where.listeners')}</p><BarChart items={listeners} fmt={(v) => String(Math.round(v))} /></>}
-            </>
-          ) : <p className="note">{t('genre.where.none')}</p>}
-        </div>
-      </section>
-
-      <section className="sec">
-        <SecHead title={t('genre.artists')} />
-        <div className="panel">
-          {artists.length ? artists.map((a, i) => <ArtistRow key={a.id} a={a} rank={i + 1} onOpen={() => go(`artist/${a.id}`)} />) : <Empty>{t('genre.artists.none')}</Empty>}
         </div>
       </section>
 

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import LineChart from '../charts/LineChart';
 import { SERIES } from '../charts/palette';
-import { ArtistRow, GenreRow, NewsRow, ReleaseRow, TrackRow } from '../components/Rows';
+import { GenreRow, NewsRow, ReleaseRow, TrackRow } from '../components/Rows';
 import { Empty, SecHead, SourceTags, StatusBadge, Sheet } from '../components/ui';
 import { readStore, writeStore } from '../services/storage';
 import { useAudio } from '../hooks/useAudio';
@@ -34,10 +34,6 @@ export default function Dashboard({ data, go }: Props) {
     if (chosen.length) return chosen;
     return [...data.genres].filter((g) => g.score != null).sort((a, b) => (b.score as number) - (a.score as number)).slice(0, 5);
   }, [picks, data.genres]);
-  const rising = useMemo(
-    () => data.artists.filter((a) => a.rising).sort((a, b) => (b.growth_30d ?? 0) - (a.growth_30d ?? 0)).slice(0, 5),
-    [data.artists],
-  );
   const hotTracks = useMemo(() => {
     const dz = data.tracks.filter((x) => x.source === 'deezer');
     const movers = dz.filter((x) => (x.position_delta ?? 0) > 0).sort((a, b) => (b.position_delta as number) - (a.position_delta as number));
@@ -45,7 +41,6 @@ export default function Dashboard({ data, go }: Props) {
   }, [data.tracks]);
   const releases = useMemo(() => [...data.releases].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 5), [data.releases]);
   const favGenres = data.genres.filter((g) => prefs.favGenres.includes(g.id));
-  const favArtists = data.artists.filter((a) => prefs.favArtists.includes(a.id));
   const wt = data.insights.weekly_trend;
   const shifts = (data.digest?.status_changes ?? []).slice().sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
 
@@ -87,16 +82,15 @@ export default function Dashboard({ data, go }: Props) {
         </section>
       )}
 
-      {show('favorites') && (favGenres.length > 0 || favArtists.length > 0) && (
+      {show('favorites') && favGenres.length > 0 && (
         <section className="sec">
           <SecHead title={t('section.favorites')} />
           <div className="panel">
             {favGenres.map((g) => <GenreRow key={g.id} g={g} onOpen={() => go(`genres/${g.id}`)} fav onFav={() => toggleFav('favGenres', g.id)} />)}
-            {favArtists.map((a) => <ArtistRow key={a.id} a={a} onOpen={() => go(`artist/${a.id}`)} fav onFav={() => toggleFav('favArtists', a.id)} />)}
           </div>
         </section>
       )}
-      {show('favorites') && favGenres.length === 0 && favArtists.length === 0 && (
+      {show('favorites') && favGenres.length === 0 && (
         <section className="sec">
           <SecHead title={t('section.favorites')} />
           <div className="panel"><Empty>{t('fav.empty')}</Empty></div>
@@ -122,15 +116,6 @@ export default function Dashboard({ data, go }: Props) {
           <SecHead title={t('section.genres')} action={{ label: t('more'), onClick: () => go('genres') }} />
           <div className="panel">
             {topGenres.length ? topGenres.map((g) => <GenreRow key={g.id} g={g} onOpen={() => go(`genres/${g.id}`)} />) : <Empty>{t('status.insufficient.hint')}</Empty>}
-          </div>
-        </section>
-      )}
-
-      {show('rising') && (
-        <section className="sec">
-          <SecHead title={t('section.rising')} action={{ label: t('more'), onClick: () => go('djs') }} />
-          <div className="panel">
-            {rising.length ? rising.map((a, i) => <ArtistRow key={a.id} a={a} rank={i + 1} onOpen={() => go(`artist/${a.id}`)} />) : <Empty>{t('djs.none.rising')}</Empty>}
           </div>
         </section>
       )}

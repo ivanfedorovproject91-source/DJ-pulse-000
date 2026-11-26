@@ -30,7 +30,7 @@ def load(dirs, name):
 
 def test_full_run_produces_all_files(dirs):
     meta = run(dirs, FakeHttp(TODAY))
-    for f in ("meta", "genres", "artists", "tracks", "releases", "news", "countries", "insights", "digest", "sources"):
+    for f in ("meta", "genres", "tracks", "releases", "news", "insights", "digest", "sources"):
         assert (dirs[0] / f"{f}.json").exists(), f
     assert meta["demo"] is False
     g = load(dirs, "genres")["items"]
@@ -52,33 +52,6 @@ def test_missing_wikipedia_article_is_reported_not_faked(dirs, monkeypatch):
     assert any("Ghost" in n for n in meta["notes"])      # пометка, а не сбой источника
     assert not any("Ghost" in e for e in meta["errors"])
     assert meta["status"] == "ok"                          # из-за жанра без статьи статус не «partial»
-
-
-def test_snapshot_metrics_have_no_growth_on_first_day(dirs):
-    run(dirs, FakeHttp(TODAY))
-    a = load(dirs, "artists")["items"]
-    one = next(x for x in a if x["name"] == "Artist One")
-    assert one["metrics"]["lf_listeners"]["value"] == 12345
-    # Last.fm — снимок за один день: роста нет, и это None, а не 0
-    lf = next(s for s in one["signals"] if s["metric"] == "lf_listeners") if any(s["metric"] == "lf_listeners" for s in one["signals"]) else None
-    assert lf is None
-
-
-def test_snapshot_growth_after_30_days(dirs):
-    run(dirs, FakeHttp(TODAY))
-    # через 30 дней тот же показатель вырос: подменим историю вручную
-    hist_path = dirs[1] / "history" / "history.json"
-    h = json.loads(hist_path.read_text(encoding="utf-8"))
-    for ent, m in h.items():
-        if ent.startswith("artist:") and "lf_listeners" in m:
-            (d, v), = m["lf_listeners"].items()
-            m["lf_listeners"] = {(TODAY - timedelta(days=30)).isoformat(): v / 1.5, d: v}
-    hist_path.write_text(json.dumps(h), encoding="utf-8")
-    run(dirs, FakeHttp(TODAY))
-    one = next(x for x in load(dirs, "artists")["items"] if x["name"] == "Artist One")
-    sig = next(s for s in one["signals"] if s["metric"] == "lf_listeners")
-    assert sig["d30"] == 50.0
-    assert one["rising"] and "Last.fm" in one["rising"]["sources"]
 
 
 def test_one_source_down_does_not_block_others(dirs):
@@ -113,19 +86,8 @@ def test_no_lastfm_key_disables_source_honestly(dirs):
     run(dirs, FakeHttp(TODAY), env={})
     s = load(dirs, "sources.json")
     assert s["lastfm"]["status"] == "disabled"
-    assert s["youtube"]["status"] == "disabled"
     # приложение всё равно получает жанры и чарт Deezer
     assert load(dirs, "genres")["items"] and load(dirs, "tracks")["items"]
-
-
-def test_russia_artists_have_origin_country_from_musicbrainz(dirs):
-    run(dirs, FakeHttp(TODAY))
-    a = load(dirs, "artists")["items"]
-    ru = [x for x in a if x["country"] == "RU"]
-    assert ru and all(x["country_source"] == "MusicBrainz" for x in ru)
-    c = next(x for x in load(dirs, "countries")["items"] if x["code"] == "RU")
-    assert c["origin"]["n_artists"] == len(ru)
-    assert "СЛУШАТЕЛЕЙ" in c["listeners"]["source"]  # география слушателей отдельно от происхождения
 
 
 def test_incomplete_release_dates_are_dropped(dirs):
@@ -172,26 +134,6 @@ def test_news_only_mode_does_not_touch_trend_meta(dirs):
     assert res["news"] >= 1 and res["releases"] >= 1
     assert load(dirs, "meta")["generated_at"] == before          # дата основных данных не «освежается» задним числом
     assert load(dirs, "genres")["generated_at"] == genres_before
-
-
-def test_same_musicbrainz_artist_under_two_names_is_merged(dirs, monkeypatch):
-    # «Artist One» и алиас «A1» в MusicBrainz — один и тот же mbid → один артист в реестре
-    from tests import fakes
-    class AliasHttp(fakes.FakeHttp):
-        def get(self, url, params=None, **kw):
-            if url.endswith("/artist") and "musicbrainz" in url and "country:RU" not in (params or {}).get("query", ""):
-                return {"artists": [{"id": "same-mbid", "name": "Artist One", "score": 100}]}
-            if "musicbrainz.org/ws/2/artist/mb-ru-1" in url:
-                return {"id": "mb-ru-1", "name": "Ruski DJ", "country": "RU", "area": {"name": "Russia"}, "tags": [], "relations": []}
-            if "musicbrainz.org/ws/2/artist/same-mbid" in url:
-                return {"id": "same-mbid", "name": "Artist One", "country": "RU", "area": {"name": "Russia"}, "tags": [], "relations": []}
-            return super().get(url, params, **kw)
-    monkeypatch.setattr(fakes, "FakeHttp", AliasHttp)
-    run(dirs, AliasHttp(TODAY))
-    a = [x for x in load(dirs, "artists")["items"] if x["country"] == "RU"]
-    ids = [x["id"] for x in a]
-    assert len(ids) == len(set(ids))
-    assert sum(1 for x in a if x["name"] == "Artist One") == 1
 
 
 def test_two_genres_cannot_share_one_wikipedia_article(dirs, monkeypatch):

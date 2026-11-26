@@ -99,18 +99,3 @@ def snapshot_growth(series: Series, today: date, days: int = 30, tolerance: int 
         if gap <= tolerance and (best is None or gap < best[0]):
             best = (gap, v)
     return pct_change(now, best[1]) if best else None
-
-
-def percentile_ranks(values: dict[str, float]) -> dict[str, float]:
-    """0..100: доля артистов с МЕНЬШИМ значением. Устойчиво к разнице масштабов источников."""
-    if not values:
-        return {}
-    items = sorted(values.values())
-    n = len(items)
-    if n == 1:
-        return {k: 100.0 for k in values}
-    out = {}
-    for k, v in values.items():
-        below = sum(1 for x in items if x < v)
-        out[k] = round(100.0 * below / (n - 1), 1)
-    return out

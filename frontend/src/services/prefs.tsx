@@ -3,16 +3,15 @@ import { readStore, writeStore } from './storage';
 import { telegramLang } from './telegram';
 
 export type Lang = 'ru' | 'en';
-export const SECTIONS = ['trend', 'favorites', 'chart', 'genres', 'rising', 'tracks', 'releases', 'insights', 'news'] as const;
+export const SECTIONS = ['trend', 'favorites', 'chart', 'genres', 'tracks', 'releases', 'insights', 'news'] as const;
 export type SectionId = (typeof SECTIONS)[number];
-export const DIGEST_SECTIONS = ['trend', 'mine', 'genres', 'rising', 'russia', 'tracks', 'insights'] as const;
+export const DIGEST_SECTIONS = ['trend', 'mine', 'genres', 'tracks', 'insights'] as const;
 export type DigestSection = (typeof DIGEST_SECTIONS)[number];
 
 export interface Prefs {
   lang: Lang;
   hidden: SectionId[];
   favGenres: string[];
-  favArtists: string[];
   digest: { freq: 'off' | 'daily' | 'weekly'; sections: DigestSection[] };
 }
 
@@ -24,21 +23,29 @@ function defaults(): Prefs {
     lang: tl && !tl.startsWith('ru') ? 'en' : 'ru',
     hidden: [],
     favGenres: [],
-    favArtists: [],
     digest: { freq: 'off', sections: [...DIGEST_SECTIONS] },
+  };
+}
+
+/** Настройки, сохранённые старой версией, могут содержать удалённые разделы — отбрасываем их. */
+function clean(p: Prefs): Prefs {
+  return {
+    ...p,
+    hidden: p.hidden.filter((s) => SECTIONS.includes(s)),
+    digest: { ...p.digest, sections: p.digest.sections.filter((s) => DIGEST_SECTIONS.includes(s)) },
   };
 }
 
 interface Ctx {
   prefs: Prefs;
   update: (p: Partial<Prefs>) => void;
-  toggleFav: (kind: 'favGenres' | 'favArtists', id: string) => void;
+  toggleFav: (kind: 'favGenres', id: string) => void;
 }
 
 const PrefsCtx = createContext<Ctx>(null as unknown as Ctx);
 
 export function PrefsProvider({ children }: { children: ReactNode }) {
-  const [prefs, setPrefs] = useState<Prefs>(() => readStore(KEY, defaults()));
+  const [prefs, setPrefs] = useState<Prefs>(() => clean(readStore(KEY, defaults())));
   const update = useCallback((p: Partial<Prefs>) => {
     setPrefs((cur) => {
       const next = { ...cur, ...p };
@@ -46,7 +53,7 @@ export function PrefsProvider({ children }: { children: ReactNode }) {
       return next;
     });
   }, []);
-  const toggleFav = useCallback((kind: 'favGenres' | 'favArtists', id: string) => {
+  const toggleFav = useCallback((kind: 'favGenres', id: string) => {
     setPrefs((cur) => {
       const list = cur[kind].includes(id) ? cur[kind].filter((x) => x !== id) : [...cur[kind], id];
       const next = { ...cur, [kind]: list };

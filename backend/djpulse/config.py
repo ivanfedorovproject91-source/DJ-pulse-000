@@ -207,13 +207,6 @@ def load_genres() -> tuple[Genre, ...]:
     return tuple(out)
 
 
-@dataclass(frozen=True)
-class Country:
-    code: str  # ISO 3166-1 alpha-2
-    name_en: str  # название в формате Last.fm geo.* (английское)
-    name_ru: str
-
-
 # Теги, по которым артист считается электронным. Нужны, чтобы в рейтинг не попадали поп- и хип-хоп-исполнители.
 ELECTRONIC_TAGS = frozenset({
     "electronic", "electronica", "edm", "electro", "dj", "house", "techno", "trance", "dubstep",
@@ -223,22 +216,6 @@ ELECTRONIC_TAGS = frozenset({
     "deep house", "tech house", "progressive house", "electro house", "big room", "psychedelic trance",
     "dark ambient", "ebm", "vocal trance", "uk garage", "afro house", "melodic techno",
 })
-
-COUNTRIES: tuple[Country, ...] = (
-    Country("RU", "Russian Federation", "Россия"),
-    Country("US", "United States", "США"),
-    Country("GB", "United Kingdom", "Великобритания"),
-    Country("DE", "Germany", "Германия"),
-    Country("NL", "Netherlands", "Нидерланды"),
-    Country("FR", "France", "Франция"),
-    Country("ES", "Spain", "Испания"),
-    Country("IT", "Italy", "Италия"),
-    Country("BR", "Brazil", "Бразилия"),
-    Country("UA", "Ukraine", "Украина"),
-    Country("PL", "Poland", "Польша"),
-    Country("TR", "Turkey", "Турция"),
-    Country("ZA", "South Africa", "ЮАР"),
-)
 
 # RSS музыкальных изданий. Хранятся только заголовок, ссылка, дата и источник —
 # текст статей не копируется. Если лента недоступна, источник помечается ошибкой,
@@ -272,9 +249,6 @@ class Thresholds:
     emerging_30d: float = 25.0
     emerging_max_score: float = 25.0
     min_history_days_for_status: int = 35
-    rising_artist_30d: float = 15.0
-    rising_artist_min_signals: int = 1
-    rising_artist_min_wiki_views: float = 50.0
 
 
 @dataclass
@@ -282,14 +256,10 @@ class Settings:
     thresholds: Thresholds = field(default_factory=Thresholds)
     wiki_backfill_days: int = 365
     history_keep_days: int = 800
-    top_artists_per_tag: int = 25
-    max_registry_artists: int = 600
-    mb_discover_ru_limit: int = 40
-    mb_discover_genres_per_run: int = 25   # российские артисты ищутся по части жанров за запуск (по кругу)
     preview_lookups_per_run: int = 1000      # поиск превью на Deezer для треков Last.fm
     preview_per_genre: int = 15
-    mb_lookups_per_run: int = 100
     mb_label_lookups_per_run: int = 80
+    artist_class_lookups_per_run: int = 400   # проверка «электронный ли исполнитель» для треков жанра
     tracks_per_tag: int = 15
     news_max_items: int = 40
     news_max_age_days: int = 21

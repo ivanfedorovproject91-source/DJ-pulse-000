@@ -47,7 +47,7 @@ export default function Tracks({ data }: { data: AppData }) {
       <Seg<Tab> value={tab} onChange={setTab} options={[{ id: 'charts', label: t('tracks.charts') }, { id: 'rising', label: t('tracks.rising') }, { id: 'new', label: t('tracks.new') }]} />
       <div className="filters">
         <label>
-          <span className="field-label">{t('djs.genre')}</span>
+          <span className="field-label">{t('filter.genre')}</span>
           <select className="select" value={genre} onChange={(e) => setGenre(e.target.value)}>
             <option value="">{t('all')}</option>
             {data.genres.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}

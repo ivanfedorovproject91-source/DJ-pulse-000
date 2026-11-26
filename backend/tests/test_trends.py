@@ -69,10 +69,3 @@ def test_snapshot_growth_uses_nearest_point_or_none():
     assert trends.snapshot_growth(s, END, 30) == 20.0
     assert trends.snapshot_growth({"2026-06-30": 120}, END, 30) is None  # нет базы
     assert trends.snapshot_growth({"2026-06-30": 120, "2026-04-01": 100}, END, 30) is None  # база слишком далеко
-
-
-def test_percentile_ranks():
-    r = trends.percentile_ranks({"a": 1, "b": 10, "c": 100})
-    assert r == {"a": 0.0, "b": 50.0, "c": 100.0}
-    assert trends.percentile_ranks({"x": 5}) == {"x": 100.0}
-    assert trends.percentile_ranks({}) == {}

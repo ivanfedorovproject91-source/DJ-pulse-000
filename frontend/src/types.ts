@@ -39,41 +39,6 @@ export interface Genre {
   as_of: string | null;
 }
 
-export interface MetricVal {
-  value: number;
-  as_of: string;
-  source: string;
-}
-
-export interface Signal {
-  source: string;
-  metric: string;
-  d30: number | null;
-  d90: number | null;
-}
-
-export interface Artist {
-  id: string;
-  name: string;
-  country: string | null;
-  country_source: string | null;
-  genres: string[];
-  photo: string | null;
-  links: Record<string, string>;
-  metrics: Record<string, MetricVal>;
-  popularity: number | null;
-  n_sources: number;
-  sources: string[];
-  growth_30d: number | null;
-  growth_90d: number | null;
-  ended?: boolean;
-  end_year?: string | null;
-  growth_sources?: string[];
-  signals: Signal[];
-  rising: { reason: string; sources: string[]; n_signals: number } | null;
-  history: Record<string, Point[]>;
-}
-
 export interface Track {
   id: string;
   title: string;
@@ -132,34 +97,6 @@ export interface NewsItem {
   published: string;
 }
 
-export interface CountryGenre {
-  genre: string;
-  name: string;
-  count: number;
-}
-
-export interface Country {
-  code: string;
-  name_ru: string;
-  name_en: string;
-  origin: {
-    source: string;
-    n_artists: number;
-    n_rising: number;
-    top_artists: string[];
-    rising_artists: string[];
-    genres: CountryGenre[];
-  };
-  listeners: null | {
-    source: string;
-    as_of: string;
-    electronic_in_top50: string[];
-    share_electronic_in_top50: number | null;
-    top_artists: { name: string; rank: number }[];
-    genres: CountryGenre[];
-  };
-}
-
 export interface Evidence {
   label: string;
   value: string;
@@ -200,13 +137,11 @@ export interface Digest {
 export interface AppData {
   meta: Meta;
   genres: Genre[];
-  artists: Artist[];
   tracks: Track[];
   releases: Release[];
   news: NewsItem[];
   labels: LabelItem[];
   events: EventItem[];
-  countries: Country[];
   insights: { weekly_trend: WeeklyTrend | null; items: Insight[] };
   sources: Record<string, SourceInfo>;
   digest: Digest | null;

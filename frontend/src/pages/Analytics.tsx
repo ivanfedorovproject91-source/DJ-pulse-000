@@ -1,20 +1,17 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import BarChart from '../charts/BarChart';
-import { SERIES } from '../charts/palette';
-import { ArtistRow, NewsRow } from '../components/Rows';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { NewsRow } from '../components/Rows';
 import { SourcesList } from '../components/Shell';
 import { Events, Labels } from './Scene';
 import { resetOnboarding } from '../components/Onboarding';
 import { Empty, SecHead, Seg, SourceTags, Toggle } from '../components/ui';
 import { isApiConfigured, saveDigestPrefs, type SyncResult } from '../services/api';
 import { useI18n, type Key } from '../services/i18n';
-import { flag, fmtNum } from '../services/format';
 import { DIGEST_SECTIONS, SECTIONS, usePrefs, type DigestSection, type Lang } from '../services/prefs';
 import { haptic, inTelegram, tg } from '../services/telegram';
 import type { AppData } from '../types';
 
-export type ATab = 'insights' | 'world' | 'labels' | 'events' | 'sources' | 'settings';
-const ATABS: ATab[] = ['insights', 'world', 'labels', 'events', 'sources', 'settings'];
+export type ATab = 'insights' | 'labels' | 'events' | 'sources' | 'settings';
+const ATABS: ATab[] = ['insights', 'labels', 'events', 'sources', 'settings'];
 const ENT: Record<string, string> = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#x27;': "'", '&#39;': "'" };
 
 /** Безопасно показывает дайджест: допускается только <b>, остальное — обычный текст. */
@@ -34,7 +31,6 @@ export default function Analytics({ data, tab, setTab, go }: { data: AppData; ta
         {ATABS.filter((x) => x !== 'events' || data.events.length > 0).map((x) => <button key={x} className={`chip ${tab === x ? 'on' : ''}`} onClick={() => { setTab(x); haptic(); }}>{t(`an.${x}` as Key)}</button>)}
       </div>
       {tab === 'insights' && <Insights data={data} go={go} />}
-      {tab === 'world' && <World data={data} go={go} />}
       {tab === 'labels' && <Labels data={data} />}
       {tab === 'events' && data.events.length > 0 && <Events data={data} />}
       {tab === 'sources' && <Sources data={data} />}
@@ -72,82 +68,6 @@ function Insights({ data, go }: { data: AppData; go: (p: string) => void }) {
   );
 }
 
-function World({ data, go }: { data: AppData; go: (p: string) => void }) {
-  const { t, lang } = useI18n();
-  const [code, setCode] = useState('RU');
-  const countries = useMemo(() => [...data.countries].sort((a, b) => (a.code === 'RU' ? -1 : b.code === 'RU' ? 1 : b.origin.n_artists - a.origin.n_artists)), [data.countries]);
-  const c = countries.find((x) => x.code === code) ?? countries[0];
-  const name = (x: { name_ru: string; name_en: string }) => (lang === 'ru' ? x.name_ru : x.name_en);
-  if (!c) return <Empty>{t('world.empty')}</Empty>;
-
-  const byId = new Map(data.artists.map((a) => [a.id, a]));
-  const top = c.origin.top_artists.map((id) => byId.get(id)).filter(Boolean).slice(0, 5);
-  const rising = c.origin.rising_artists.map((id) => byId.get(id)).filter(Boolean).slice(0, 5);
-  const market = countries.filter((x) => x.origin.n_artists > 0).map((x) => ({
-    id: x.code, label: `${flag(x.code)} ${name(x)}`, value: x.origin.n_artists, color: x.code === c.code ? '#b7ff3c' : '#4a554f',
-  }));
-
-  return (
-    <>
-      <div className="chips">
-        {countries.map((x) => <button key={x.code} className={`chip ${x.code === c.code ? 'on' : ''}`} onClick={() => { setCode(x.code); haptic(); }}>{flag(x.code)} {name(x)}</button>)}
-      </div>
-
-      <section className="sec">
-        <SecHead title={t('world.compare')} note={t('world.compare.note')} />
-        <div className="panel pad">
-          {market.length ? <BarChart items={market} fmt={(v) => String(v)} onSelect={setCode} /> : <Empty>{t('world.empty')}</Empty>}
-        </div>
-      </section>
-
-      <section className="sec">
-        <SecHead title={`${flag(c.code)} ${name(c)} · ${t('world.origin')}`} />
-        <div className="panel">
-          <div className="mini-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-            <div><small>{t('world.artists.short')}</small><b>{c.origin.n_artists}</b></div>
-            <div><small>{t('world.rising.short')}</small><b>{c.origin.n_rising}</b></div>
-          </div>
-        </div>
-        <p className="note" style={{ margin: '8px 0' }}>{c.origin.source}. {t('world.origin.note')}</p>
-        {c.origin.genres.length > 0 && (
-          <div className="panel pad" style={{ marginBottom: 12 }}>
-            <div className="note" style={{ marginBottom: 6 }}>{t('world.genres')}</div>
-            <BarChart items={c.origin.genres.map((g, i) => ({ id: g.genre, label: g.name, value: g.count, color: SERIES[i % SERIES.length] }))} fmt={(v) => String(v)} onSelect={(id) => go(`genres/${id}`)} />
-          </div>
-        )}
-        {rising.length > 0 && (
-          <>
-            <SecHead title={t('world.rising')} />
-            <div className="panel" style={{ marginBottom: 12 }}>{rising.map((a) => a && <ArtistRow key={a.id} a={a} onOpen={() => go(`artist/${a.id}`)} showReason />)}</div>
-          </>
-        )}
-        {top.length > 0 ? (
-          <>
-            <SecHead title={t('world.top')} />
-            <div className="panel">{top.map((a, i) => a && <ArtistRow key={a.id} a={a} rank={i + 1} onOpen={() => go(`artist/${a.id}`)} />)}</div>
-          </>
-        ) : <div className="panel"><Empty>{t('world.empty')}</Empty></div>}
-      </section>
-
-      <section className="sec">
-        <SecHead title={t('world.listeners')} />
-        {c.listeners ? (
-          <div className="panel pad">
-            <p className="note" style={{ marginBottom: 6 }}>{c.listeners.source}</p>
-            <div className="kv" style={{ padding: '6px 0' }}>
-              <span>{t('world.share')}</span>
-              <b>{c.listeners.share_electronic_in_top50 != null ? `${fmtNum(c.listeners.share_electronic_in_top50, lang)}%` : '—'}</b>
-            </div>
-            {c.listeners.genres.length > 0 && (
-              <BarChart items={c.listeners.genres.map((g, i) => ({ id: g.genre, label: g.name, value: g.count, color: SERIES[i % SERIES.length] }))} fmt={(v) => String(v)} onSelect={(id) => go(`genres/${id}`)} />
-            )}
-          </div>
-        ) : <div className="panel"><Empty>{t('world.listeners.na')}</Empty></div>}
-      </section>
-    </>
-  );
-}
-
 function Sources({ data }: { data: AppData }) {
   const { t } = useI18n();
   return (
@@ -157,13 +77,13 @@ function Sources({ data }: { data: AppData }) {
       <section className="sec" style={{ marginTop: 22 }}>
         <SecHead title={t('method.title')} />
         <div className="panel pad" style={{ display: 'grid', gap: 10 }}>
-          {(['method.score', 'method.change', 'method.status', 'method.pop', 'method.growth'] as Key[]).map((k) => <p className="note" key={k} style={{ color: 'var(--tx2)' }}>{t(k)}</p>)}
+          {(['method.score', 'method.change', 'method.status'] as Key[]).map((k) => <p className="note" key={k} style={{ color: 'var(--tx2)' }}>{t(k)}</p>)}
         </div>
       </section>
       <section className="sec">
         <SecHead title={t('method.limits')} />
         <div className="panel pad" style={{ display: 'grid', gap: 8 }}>
-          {(['method.limits.2', 'method.limits.4'] as Key[]).map((k) => <p className="note" key={k} style={{ color: 'var(--tx2)' }}>• {t(k)}</p>)}
+          {(['method.limits.2'] as Key[]).map((k) => <p className="note" key={k} style={{ color: 'var(--tx2)' }}>• {t(k)}</p>)}
           <p className="note">{t('method.lastfm')}</p>
         </div>
       </section>
@@ -259,7 +179,7 @@ function Settings({ data }: { data: AppData }) {
         </section>
       )}
 
-      <button className="btn ghost" onClick={() => update({ favGenres: [], favArtists: [] })}>{t('settings.reset')}</button>
+      <button className="btn ghost" onClick={() => update({ favGenres: [] })}>{t('settings.reset')}</button>
     </>
   );
 }

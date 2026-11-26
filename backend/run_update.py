@@ -14,7 +14,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", choices=["news"], help="облегчённый режим")
     args = ap.parse_args()
-    env = {k: os.environ.get(k, "") for k in ("LASTFM_API_KEY", "YOUTUBE_API_KEY")}
+    env = {k: os.environ.get(k, "") for k in ("LASTFM_API_KEY", "TICKETMASTER_API_KEY")}
     pipe = Pipeline(env)
     if args.only == "news":
         res = pipe.run_news_only()

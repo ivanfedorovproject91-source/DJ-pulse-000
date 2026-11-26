@@ -8,7 +8,7 @@ def _pct(v) -> str:
     return "—" if v is None else f"{v:+.0f}%"
 
 
-def build_digest(meta: dict, genres: list[dict], artists: list[dict], tracks: list[dict], insights: dict,
+def build_digest(meta: dict, genres: list[dict], tracks: list[dict], insights: dict,
                  status_changes: list[dict] | None = None) -> dict:
     sections: dict[str, str] = {}
     ready = [g for g in genres if g["status"] != "insufficient" and g["changes"]["d7"] is not None]
@@ -21,16 +21,6 @@ def build_digest(meta: dict, genres: list[dict], artists: list[dict], tracks: li
     if risers:
         lines = [f"• {escape(g['name'])}: {_pct(g['changes']['d7'])} / 7д, {_pct(g['changes']['d30'])} / 30д" for g in risers]
         sections["genres"] = "📈 <b>Жанры: топ роста</b>\n" + "\n".join(lines)
-
-    rising = sorted([a for a in artists if a.get("rising")], key=lambda a: -(a["growth_30d"] or 0))[:5]
-    if rising:
-        lines = [f"• {escape(a['name'])} ({escape(a['country'] or '—')}): {_pct(a['growth_30d'])} / 30д" for a in rising]
-        sections["rising"] = "🚀 <b>Rising DJs</b>\n" + "\n".join(lines)
-
-    ru = sorted([a for a in artists if a.get("country") == "RU" and a.get("rising")], key=lambda a: -(a["growth_30d"] or 0))[:3]
-    if ru:
-        sections["russia"] = "🇷🇺 <b>Russia Scene</b>\n" + "\n".join(
-            f"• {escape(a['name'])}: {_pct(a['growth_30d'])} / 30д" for a in ru)
 
     movers = sorted([t for t in tracks if t.get("position_delta") and t["position_delta"] > 0],
                     key=lambda t: -t["position_delta"])[:3]
@@ -51,4 +41,4 @@ def build_digest(meta: dict, genres: list[dict], artists: list[dict], tracks: li
     return {"generated_at": meta["generated_at"], "data_date": meta["data_date"], "status": meta["status"],
             "genre_brief": brief, "status_changes": status_changes or [],
             "sections": sections, "footer": escape(status_line),
-            "order": ["trend", "genres", "rising", "russia", "tracks", "insights"]}
+            "order": ["trend", "genres", "tracks", "insights"]}
