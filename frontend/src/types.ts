@@ -47,15 +47,11 @@ export interface Track {
   url: string | null;
   preview: string | null;
   deezer_id?: string | number | null;
-  source: 'deezer' | 'lastfm';
-  chart: string;
-  genre: string | null;
-  chart_position: number;
-  previous_position: number | null;
-  position_delta: number | null;
-  release_date: string | null;
+  source: 'lastfm';
+  genre: string;
+  /** Порядок в топе тега Last.fm за всё время (не позиция в чарте). */
+  rank: number;
   as_of: string;
-  history: Point[];
 }
 
 export interface Release {
@@ -66,6 +62,7 @@ export interface Release {
   type: string | null;
   url: string;
   genre: string;
+  label?: { id: string; name: string } | null;
 }
 
 export interface LabelItem {

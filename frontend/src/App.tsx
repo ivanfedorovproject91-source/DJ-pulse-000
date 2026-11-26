@@ -7,7 +7,7 @@ import Analytics, { type ATab } from './pages/Analytics';
 import Dashboard from './pages/Dashboard';
 import GenreDetail from './pages/GenreDetail';
 import Genres from './pages/Genres';
-import Tracks from './pages/Tracks';
+import Releases from './pages/Releases';
 import { loadAll, NoDataError } from './services/data';
 import { useI18n } from './services/i18n';
 import type { AppData } from './types';
@@ -55,7 +55,7 @@ export default function App() {
           {tab === 'dashboard' && <FreshnessBar data={load.data} />}
           {parts[0] === 'genres' && parts[1] ? <GenreDetail data={load.data} id={parts[1]} go={go} />
             : tab === 'genres' ? <Genres data={load.data} go={go} />
-            : tab === 'tracks' ? <Tracks data={load.data} />
+            : tab === 'releases' ? <Releases data={load.data} />
             : tab === 'analytics' ? <Analytics data={load.data} tab={aTab} setTab={(x) => go(`analytics/${x}`)} go={go} />
             : <Dashboard data={load.data} go={go} />}
           <footer className="credit">DJ PULSE · Создатель проекта Фёдоров Иван</footer>

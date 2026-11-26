@@ -67,6 +67,7 @@ def test_one_source_down_does_not_block_others(dirs):
 def test_failed_source_keeps_previous_success_date(dirs):
     run(dirs, FakeHttp(TODAY))
     first = load(dirs, "sources.json")["deezer"]["last_success"]
+    (dirs[1] / "cache" / "track_previews2.json").unlink()   # заставляем снова обратиться к Deezer
     run(dirs, FakeHttp(TODAY, fail_hosts=("api.deezer.com",)), today=TODAY + timedelta(days=1))
     d = load(dirs, "sources.json")["deezer"]
     assert d["last_success"] == first  # не затёрт
@@ -86,8 +87,8 @@ def test_no_lastfm_key_disables_source_honestly(dirs):
     run(dirs, FakeHttp(TODAY), env={})
     s = load(dirs, "sources.json")
     assert s["lastfm"]["status"] == "disabled"
-    # приложение всё равно получает жанры и чарт Deezer
-    assert load(dirs, "genres")["items"] and load(dirs, "tracks")["items"]
+    # приложение всё равно получает статистику жанров и релизы
+    assert load(dirs, "genres")["items"] and load(dirs, "releases")["items"]
 
 
 def test_incomplete_release_dates_are_dropped(dirs):
@@ -97,13 +98,17 @@ def test_incomplete_release_dates_are_dropped(dirs):
     assert not any(x["title"] == "Fuzzy" for x in r)
 
 
-def test_chart_delta_needs_previous_day(dirs):
+def test_tracks_are_genre_samples_not_a_chart(dirs):
     run(dirs, FakeHttp(TODAY))
-    t = next(x for x in load(dirs, "tracks")["items"] if x["source"] == "deezer")
-    assert t["position_delta"] is None  # вчерашних данных нет → нет «динамики»
-    run(dirs, FakeHttp(TODAY), today=TODAY + timedelta(days=1))
-    t = next(x for x in load(dirs, "tracks")["items"] if x["source"] == "deezer")
-    assert t["position_delta"] == 0 and t["previous_position"] == 1
+    items = load(dirs, "tracks")["items"]
+    assert items and all(t["source"] == "lastfm" and "position_delta" not in t for t in items)
+
+
+def test_release_insight_counts_only_last_30_days():
+    from djpulse.analytics.insights import build_insights
+    rel = [{"genre": "a", "date": "2026-06-20"}, {"genre": "b", "date": "2026-04-10"}, {"genre": "b", "date": "2026-04-11"}]
+    item = next(i for i in build_insights([], rel, TODAY)["items"] if i["type"] == "releases")
+    assert item["genre"] == "a" and item["evidence"][0]["value"] == "1"
 
 
 def test_digest_is_html_safe_and_has_footer(dirs):

@@ -39,7 +39,7 @@ export async function validateInitData(initData, botToken, { maxAgeSec = 86400, 
   return { ok: true, user };
 }
 
-export const SECTION_IDS = ['trend', 'mine', 'genres', 'tracks', 'insights'];
+export const SECTION_IDS = ['trend', 'mine', 'genres', 'insights'];
 const GENRE_ID = /^[a-z0-9-]{1,40}$/;
 
 /** Приводит присланные настройки к безопасному виду (белый список значений). */

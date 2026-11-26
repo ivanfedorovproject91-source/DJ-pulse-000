@@ -27,24 +27,17 @@ export function GenreRow({ g, onOpen, fav, onFav, right }: {
 }
 
 export function TrackRow({ tr, playing, onPlay }: { tr: Track; playing: boolean; onPlay: (t: Track) => void }) {
-  const { t, lang } = useI18n();
+  const { t } = useI18n();
   const err = useAudioError(tr.id);
   return (
     <div className="row">
-      <span className="pos">#{tr.chart_position}</span>
       <span className="cover">{tr.cover ? <img src={tr.cover} alt="" loading="lazy" referrerPolicy="no-referrer" /> : <Icon name="disc" size={20} />}</span>
       <div className="grow">
         <div className="title">{tr.title}</div>
         <div className="sub">{tr.artist}</div>
-        <div className="sub">
-          {tr.chart}{tr.release_date ? ` · ${t('tracks.released')} ${fmtDay(tr.release_date, lang)}` : ''}
-        </div>
         {err && <div className="note" style={{ color: 'var(--warn)', marginTop: 4 }}>{err}</div>}
       </div>
-      <div style={{ textAlign: 'right', minWidth: 44 }}>
-        {tr.position_delta != null ? <Delta v={tr.position_delta} /> : <span className="delta na">—</span>}
-      </div>
-      {(tr.preview || tr.deezer_id || tr.source === 'deezer') && (
+      {(tr.preview || tr.deezer_id) && (
         <button className={`play ${playing ? 'on' : ''}`} onClick={() => onPlay(tr)} aria-label={playing ? t('tracks.stop') : t('tracks.play')}>
           <Icon name={playing ? 'stop' : 'play'} size={16} />
         </button>
@@ -62,6 +55,7 @@ export function ReleaseRow({ r, genreName }: { r: Release; genreName?: string })
       <div className="grow">
         <div className="title">{r.title}</div>
         <div className="sub">{r.artist}</div>
+        {r.label && <div className="sub">{r.label.name}</div>}
       </div>
       <div style={{ textAlign: 'right' }}>
         <div className="note">{fmtDay(r.date, lang)}</div>

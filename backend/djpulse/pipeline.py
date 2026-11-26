@@ -190,25 +190,6 @@ class Pipeline:
             self.state.ok("lastfm", None if done == len(self.genres) else f"частично: {done}/{len(self.genres)} жанров",
                           extra={"genres_loaded": done})
 
-    # ---------- 3. Deezer ----------
-    def step_deezer_chart(self) -> None:
-        self.dz_tracks: list[dict] = []
-        def work():
-            self.dz_tracks = deezer.chart_tracks(self.http)
-            rel = self._cache("dz_release.json")
-            for t in self.dz_tracks:
-                key = str(t["deezer_id"])
-                if key not in rel:
-                    try:
-                        rel[key] = deezer.track_release_date(self.http, t["deezer_id"]) or ""
-                    except SourceError:
-                        continue
-                t["release_date"] = rel.get(key) or None
-            self._save_cache("dz_release.json", rel)
-        self._guard("deezer", work)
-        if self.dz_tracks:
-            self.state.ok("deezer", extra={"tracks": len(self.dz_tracks)})
-
     def compute_genres(self) -> list[dict]:
         end = self.today - timedelta(days=1)
         daily = {g.id: self.hist.series(f"genre:{g.id}", "wiki") for g in self.genres}
@@ -234,35 +215,13 @@ class Pipeline:
         return out
 
     def compute_tracks(self) -> list[dict]:
+        """«Звучание жанра»: популярные за всё время треки по тегу Last.fm. Это не чарт — позиции и динамику не считаем."""
         day = self.today.isoformat()
-        tracks = []
-        for t in getattr(self, "dz_tracks", []):
-            tid = f"dz{t['deezer_id']}"
-            ent = f"track:{tid}"
-            self.hist.put(ent, "chart_pos", day, t["position"])
-            prev = prev_value(self.hist.series(ent, "chart_pos"), self.today)
-            tracks.append({
-                "id": tid, "title": t["title"], "artist": t["artist"], "cover": t["cover"], "url": t["url"],
-                "preview": t["preview"], "source": "deezer", "chart": "Deezer · Electro", "genre": None,
-                "chart_position": t["position"], "previous_position": prev,
-                "position_delta": (prev - t["position"]) if prev else None,
-                "release_date": t.get("release_date"), "as_of": day,
-                "history": sorted(self.hist.series(ent, "chart_pos").items())[-30:],
-            })
-        for gid, arr in getattr(self, "lf_tag_tracks", {}).items():
-            for t in arr:
-                tid = f"lf-{gid}-{slugify(t['title'])}-{slugify(t['artist'])}"[:90]
-                ent = f"track:{tid}"
-                self.hist.put(ent, f"tag_rank", day, t["rank"])
-                prev = prev_value(self.hist.series(ent, "tag_rank"), self.today)
-                tracks.append({
-                    "id": tid, "title": t["title"], "artist": t["artist"], "cover": None, "url": t["url"], "preview": None,
-                    "source": "lastfm", "chart": f"Last.fm · тег", "genre": gid, "chart_position": t["rank"],
-                    "previous_position": prev, "position_delta": (prev - t["rank"]) if prev else None,
-                    "release_date": None, "as_of": day,
-                    "history": sorted(self.hist.series(ent, "tag_rank").items())[-30:],
-                })
-        return tracks
+        return [{
+            "id": f"lf-{gid}-{slugify(t['title'])}-{slugify(t['artist'])}"[:90],
+            "title": t["title"], "artist": t["artist"], "cover": None, "url": t["url"], "preview": None,
+            "source": "lastfm", "genre": gid, "rank": t["rank"], "as_of": day,
+        } for gid, arr in getattr(self, "lf_tag_tracks", {}).items() for t in arr]
 
     def filter_electronic_tracks(self, tracks: list[dict]) -> list[dict]:
         """Теги Last.fm ставят слушатели, поэтому в треки жанра попадает поп-музыка. Оставляем только исполнителей
@@ -294,8 +253,6 @@ class Pipeline:
             self._save_cache("track_artist_class.json", cache)
 
         def keep(t: dict) -> bool:
-            if t["source"] != "lastfm":
-                return True
             e = cache.get(norm(t["artist"])) or {}
             return bool(e.get("el")) and (not e.get("g") or t["genre"] in e["g"])
         return [t for t in tracks if keep(t)]
@@ -306,7 +263,7 @@ class Pipeline:
         поэтому кэш считается свежим около суток и обновляется при следующем запуске."""
         cands: dict[str, list[dict]] = {}
         per_genre: dict[str, int] = {}
-        for t in sorted((x for x in tracks if x["source"] == "lastfm"), key=lambda x: x["chart_position"]):
+        for t in sorted((x for x in tracks if x["source"] == "lastfm"), key=lambda x: x["rank"]):
             if per_genre.get(t["genre"], 0) >= self.settings.preview_per_genre:
                 continue
             per_genre[t["genre"]] = per_genre.get(t["genre"], 0) + 1
@@ -341,6 +298,10 @@ class Pipeline:
                     t["preview"] = e.get("preview")
                     t["deezer_id"] = e.get("deezer_id")
                     t["cover"] = t["cover"] or e.get("cover")
+        if fails and not used:
+            self.state.fail("deezer", "поиск превью временно недоступен")
+        elif used:
+            self.state.ok("deezer", extra={"previews_checked": used})
         keep = {k: v for k, v in cache.items() if k in cands}
         self._save_cache("track_previews2.json", keep)
         if fails:
@@ -491,11 +452,9 @@ class Pipeline:
 
     def run(self) -> dict:
         self.wiki_genre_titles = {}
-        self.dz_tracks = []
         self.lf_tag_tracks = {}
         self.step_wikipedia_genres()
         self.step_lastfm_genres()
-        self.step_deezer_chart()
 
         prev_status = {g["id"]: g["status"] for g in read_json(self.public / "genres.json", {}).get("items", [])}
         genres = self.compute_genres()
@@ -506,7 +465,7 @@ class Pipeline:
         labels = self.compute_labels(releases)
         events = self.step_events()
         news = self.step_news()
-        insights = insights_mod.build_insights(genres, tracks, releases, self.today)
+        insights = insights_mod.build_insights(genres, releases, self.today)
         status_changes = self.update_status_log(genres, prev_status)
 
         # YouTube использовался только для рейтинга артистов, который удалён.
@@ -544,5 +503,5 @@ class Pipeline:
         write_json(w / "news.json", {"generated_at": generated, "items": news})
         write_json(w / "labels.json", {"generated_at": generated, "items": labels})
         write_json(w / "events.json", {"generated_at": generated, "items": events})
-        write_json(w / "digest.json", build_digest(meta, genres, tracks, insights, status_changes))
+        write_json(w / "digest.json", build_digest(meta, genres, insights, status_changes))
         return meta

@@ -14,7 +14,7 @@ export default function SearchSheet({ data, onClose, go }: { data: AppData; onCl
     if (h.kind === 'genre') go(`genres/${h.id}`);
     else if (h.kind === 'label') go('analytics/labels');
     else if (h.url) openLink(h.url);
-    else go('tracks');
+    else go(`genres`);
   };
   const kinds: Hit['kind'][] = ['genre', 'label', 'track'];
   return (

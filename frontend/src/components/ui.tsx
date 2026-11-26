@@ -9,7 +9,7 @@ export function Icon({ name, size = 22 }: { name: string; size?: number }) {
     dashboard: <><rect x="3" y="3" width="7.5" height="9" rx="2" /><rect x="13.5" y="3" width="7.5" height="5.5" rx="2" /><rect x="13.5" y="11.5" width="7.5" height="9.5" rx="2" /><rect x="3" y="15" width="7.5" height="6" rx="2" /></>,
     genres: <path d="M3 13h2.5l2-6 3 12 3-16 2.5 10H21" />,
     djs: <><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="2.6" /><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2" /></>,
-    tracks: <><path d="M9 18V5l11-2v13" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="17.5" cy="16" r="2.5" /></>,
+    releases: <><path d="M9 18V5l11-2v13" /><circle cx="6.5" cy="18" r="2.5" /><circle cx="17.5" cy="16" r="2.5" /></>,
     analytics: <><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></>,
     search: <><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></>,
     chevron: <path d="M9 5l7 7-7 7" />,

@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:demo": "VITE_USE_DEMO=1 vite",
     "build": "tsc --noEmit && vite build",
-    "build:demo": "VITE_USE_DEMO=1 tsc --noEmit && VITE_USE_DEMO=1 vite build",
     "test": "vitest run",
     "preview": "vite preview"
   },

@@ -15,9 +15,9 @@ export default function GenreDetail({ data, id, go }: { data: AppData; id: strin
   const { prefs, toggleFav } = usePrefs();
   const audio = useAudio();
   const g = data.genres.find((x) => x.id === id);
-  if (!g) return <Empty title={t('tracks.none')} />;
+  if (!g) return <Empty title={t('notfound')} />;
 
-  const tracks = data.tracks.filter((x) => x.genre === g.id).sort((a, b) => a.chart_position - b.chart_position).slice(0, 8);
+  const tracks = data.tracks.filter((x) => x.genre === g.id).sort((a, b) => a.rank - b.rank).slice(0, 8);
   const releases = data.releases.filter((r) => r.genre === g.id).slice(0, 6);
   const lfPoints = g.history.lf_reach;
   const related = data.genres.filter((x) => x.family && x.family === g.family && x.id !== g.id)
@@ -98,6 +98,7 @@ export default function GenreDetail({ data, id, go }: { data: AppData; id: strin
 
       <section className="sec">
         <SecHead title={t('genre.tracks')} />
+        <p className="note" style={{ marginBottom: 8 }}>{t('genre.tracks.note')}</p>
         <div className="panel">
           {tracks.length ? tracks.map((x) => <TrackRow key={x.id} tr={x} playing={audio.playing === x.id} onPlay={audio.toggle} />) : <Empty>{t('genre.tracks.none')}</Empty>}
         </div>

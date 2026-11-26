@@ -3,9 +3,9 @@ import { readStore, writeStore } from './storage';
 import { telegramLang } from './telegram';
 
 export type Lang = 'ru' | 'en';
-export const SECTIONS = ['trend', 'favorites', 'chart', 'genres', 'tracks', 'releases', 'insights', 'news'] as const;
+export const SECTIONS = ['trend', 'favorites', 'chart', 'genres', 'releases', 'insights', 'news'] as const;
 export type SectionId = (typeof SECTIONS)[number];
-export const DIGEST_SECTIONS = ['trend', 'mine', 'genres', 'tracks', 'insights'] as const;
+export const DIGEST_SECTIONS = ['trend', 'mine', 'genres', 'insights'] as const;
 export type DigestSection = (typeof DIGEST_SECTIONS)[number];
 
 export interface Prefs {

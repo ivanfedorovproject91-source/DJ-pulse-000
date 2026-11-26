@@ -5,7 +5,7 @@ import { fmtDateTime, fmtDay } from '../services/format';
 import type { AppData } from '../types';
 import { Icon, Sheet } from './ui';
 
-export const TABS = ['dashboard', 'genres', 'tracks', 'analytics'] as const;
+export const TABS = ['dashboard', 'genres', 'releases', 'analytics'] as const;
 export type Tab = (typeof TABS)[number];
 
 export function BottomNav({ active, onGo }: { active: Tab; onGo: (t: Tab) => void }) {

@@ -8,25 +8,19 @@ def _pct(v) -> str:
     return "—" if v is None else f"{v:+.0f}%"
 
 
-def build_digest(meta: dict, genres: list[dict], tracks: list[dict], insights: dict,
+def build_digest(meta: dict, genres: list[dict], insights: dict,
                  status_changes: list[dict] | None = None) -> dict:
     sections: dict[str, str] = {}
     ready = [g for g in genres if g["status"] != "insufficient" and g["changes"]["d7"] is not None]
 
     wt = insights.get("weekly_trend")
     if wt:
-        sections["trend"] = f"🔥 <b>Главный тренд недели:</b> {escape(wt['text'])}"
+        sections["trend"] = f"🔥 <b>Рост внимания за неделю:</b> {escape(wt['text'])}"
 
     risers = sorted([g for g in ready if g["changes"]["d30"] is not None], key=lambda g: -g["changes"]["d30"])[:5]
     if risers:
         lines = [f"• {escape(g['name'])}: {_pct(g['changes']['d7'])} / 7д, {_pct(g['changes']['d30'])} / 30д" for g in risers]
-        sections["genres"] = "📈 <b>Жанры: топ роста</b>\n" + "\n".join(lines)
-
-    movers = sorted([t for t in tracks if t.get("position_delta") and t["position_delta"] > 0],
-                    key=lambda t: -t["position_delta"])[:3]
-    if movers:
-        sections["tracks"] = "🎧 <b>Растут в чарте Deezer</b>\n" + "\n".join(
-            f"• {escape(t['artist'])} — {escape(t['title'])} (#{t['chart_position']}, ↑{t['position_delta']})" for t in movers)
+        sections["genres"] = "📈 <b>Жанры: рост внимания (Wikipedia)</b>\n" + "\n".join(lines)
 
     notes = insights.get("items", [])[:2]
     if notes:
@@ -41,4 +35,4 @@ def build_digest(meta: dict, genres: list[dict], tracks: list[dict], insights: d
     return {"generated_at": meta["generated_at"], "data_date": meta["data_date"], "status": meta["status"],
             "genre_brief": brief, "status_changes": status_changes or [],
             "sections": sections, "footer": escape(status_line),
-            "order": ["trend", "genres", "tracks", "insights"]}
+            "order": ["trend", "genres", "insights"]}

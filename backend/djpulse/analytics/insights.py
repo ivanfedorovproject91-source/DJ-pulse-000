@@ -3,14 +3,14 @@
 просто нет (мы не «додумываем»)."""
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, timedelta
 
 
 def _pct(v: float) -> str:
     return f"{v:+.0f}%"
 
 
-def build_insights(genres: list[dict], tracks: list[dict],
+def build_insights(genres: list[dict],
                    releases: list[dict], today: date) -> dict:
     items: list[dict] = []
     gname = {g["id"]: g["name"] for g in genres}
@@ -32,20 +32,23 @@ def build_insights(genres: list[dict], tracks: list[dict],
         body = (f"{g['name']}: внимание к жанру выросло на {_pct(g['changes']['d30'])} за 30 дней"
                 + (" по нескольким независимым источникам." if multi else " (по данным Wikipedia; второй источник пока не подтверждает или недоступен)."))
         items.append({"id": f"genre-rise-{g['id']}", "type": "genre_rise", "genre": g["id"],
-                      "title": f"{g['name']} набирает популярность", "body": body,
+                      "title": f"{g['name']}: растёт внимание в Wikipedia" if not multi else f"{g['name']}: растёт интерес", "body": body,
                       "period_days": 30, "sources": srcs, "evidence": sigs})
 
     # 2. Падение
     for g in sorted([g for g in ready if g["status"] == "declining"], key=lambda g: g["changes"]["d30"])[:2]:
         items.append({"id": f"genre-fall-{g['id']}", "type": "genre_fall", "genre": g["id"],
-                      "title": f"{g['name']}: интерес снижается",
+                      "title": f"{g['name']}: внимание в Wikipedia снижается",
                       "body": f"Просмотры статьи о жанре за 30 дней изменились на {_pct(g['changes']['d30'])}.",
                       "period_days": 30, "sources": ["Wikipedia Pageviews"],
                       "evidence": [{"label": "Wikipedia: просмотры, 30 дн.", "value": _pct(g["changes"]["d30"])}]})
 
     # 4. Новые релизы
+    month_ago = (today - timedelta(days=30)).isoformat()
     cnt: dict[str, int] = {}
     for r in releases:
+        if r["date"] < month_ago:
+            continue
         cnt[r["genre"]] = cnt.get(r["genre"], 0) + 1
     if cnt:
         gid, n = max(cnt.items(), key=lambda kv: kv[1])
@@ -54,17 +57,6 @@ def build_insights(genres: list[dict], tracks: list[dict],
                       "body": f"В MusicBrainz за последние 30 дней найдено {n} релизов с тегом жанра (теги пользовательские — выборка неполная).",
                       "period_days": 30, "sources": ["MusicBrainz"],
                       "evidence": [{"label": "Релизов за 30 дн.", "value": str(n)}]})
-
-    # 5. Движение в чарте Deezer
-    movers = [t for t in tracks if t.get("source") == "deezer" and t.get("position_delta")]
-    if movers:
-        t = max(movers, key=lambda t: t["position_delta"])
-        if t["position_delta"] > 0:
-            items.append({"id": f"chart-mover-{t['id']}", "type": "chart_mover",
-                          "title": f"{t['title']} — {t['artist']} поднимается в чарте",
-                          "body": f"Позиция в электронном чарте Deezer выросла на {t['position_delta']} (сейчас #{t['chart_position']}).",
-                          "period_days": 1, "sources": ["Deezer"],
-                          "evidence": [{"label": "Позиция", "value": f"#{t['chart_position']}"}]})
 
     # «Главный тренд недели»: жанр с лучшим недельным изменением среди растущих
     # Всплески (+100% и больше за неделю) в главный тренд не берём: чаще это разовый новостной повод, а не тренд.

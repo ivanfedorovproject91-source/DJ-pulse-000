@@ -45,9 +45,9 @@ test('пустые данные и отсутствие hash', async () => {
 });
 
 test('sanitizePrefs оставляет только допустимые значения', () => {
-  const p = sanitizePrefs({ lang: 'xx', digest: { freq: 'hourly', sections: ['trend', '<script>', 'rising', 'tracks'] } });
-  assert.deepEqual(p, { freq: 'off', sections: ['trend', 'tracks'], lang: 'ru', favGenres: [] });
-  assert.equal(sanitizePrefs({ digest: { freq: 'daily' } }).sections.length, 5);
+  const p = sanitizePrefs({ lang: 'xx', digest: { freq: 'hourly', sections: ['trend', '<script>', 'rising', 'insights'] } });
+  assert.deepEqual(p, { freq: 'off', sections: ['trend', 'insights'], lang: 'ru', favGenres: [] });
+  assert.equal(sanitizePrefs({ digest: { freq: 'daily' } }).sections.length, 4);
 });
 
 test('расписание: weekly только по понедельникам', () => {
@@ -58,13 +58,13 @@ test('расписание: weekly только по понедельникам'
 });
 
 const digest = (over = {}) => ({
-  generated_at: new Date(NOW - 3600000).toISOString(), order: ['trend', 'genres', 'tracks'],
-  sections: { trend: '🔥 <b>Тренд</b>', genres: '📈 Жанры', tracks: '🎧 Треки' }, footer: 'Данные на 2026-11-07 · статус: ok', ...over,
+  generated_at: new Date(NOW - 3600000).toISOString(), order: ['trend', 'genres', 'insights'],
+  sections: { trend: '🔥 <b>Тренд</b>', genres: '📈 Жанры', insights: '💡 Выводы' }, footer: 'Данные на 2026-11-07 · статус: ok', ...over,
 });
 
 test('дайджест учитывает выбранные разделы', () => {
-  const t = buildMessage(digest(), ['trend', 'tracks'], { now: NOW });
-  assert.ok(t.includes('Тренд') && t.includes('Треки') && !t.includes('Жанры'));
+  const t = buildMessage(digest(), ['trend', 'insights'], { now: NOW });
+  assert.ok(t.includes('Тренд') && t.includes('Выводы') && !t.includes('Жанры'));
   assert.equal(buildMessage(digest(), [], { now: NOW }), null);
   assert.equal(buildMessage(null, ['trend']), null);
 });
@@ -75,7 +75,7 @@ test('устаревшие данные помечаются в дайджест
 });
 
 test('длинный дайджест обрезается до лимита Telegram', () => {
-  const t = buildMessage(digest({ sections: { trend: 'x'.repeat(6000), genres: '', tracks: '' } }), ['trend'], { now: NOW });
+  const t = buildMessage(digest({ sections: { trend: 'x'.repeat(6000), genres: '', insights: '' } }), ['trend'], { now: NOW });
   assert.ok(t.length <= 4000);
 });
 
