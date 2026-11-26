@@ -1,4 +1,4 @@
-import type { AppData, Artist, Country, EventItem, Genre, Insight, LabelItem, Meta, NewsItem, Release, SourceInfo, Digest, Track, WeeklyTrend } from '../types';
+import type { AppData, EventItem, Genre, Insight, LabelItem, Meta, NewsItem, Release, SourceInfo, Digest, Track, WeeklyTrend } from '../types';
 
 // Боевая сборка читает ./data/ (его кладёт GitHub Actions). Демо-набор подключается
 // ТОЛЬКО явным флагом VITE_USE_DEMO — молча подменить реальные данные демо нельзя.
@@ -19,14 +19,12 @@ export class NoDataError extends Error {}
 
 export async function loadAll(): Promise<AppData> {
   const bust = String(Math.floor(Date.now() / 600000)); // не чаще раза в 10 минут обходим кэш CDN
-  const [meta, genres, artists, tracks, releases, news, countries, insights, sources, digest, labels, events] = await Promise.all([
+  const [meta, genres, tracks, releases, news, insights, sources, digest, labels, events] = await Promise.all([
     load<Meta>('meta', bust),
     load<{ items: Genre[] }>('genres', bust),
-    load<{ items: Artist[] }>('artists', bust),
     load<{ items: Track[] }>('tracks', bust),
     load<{ items: Release[] }>('releases', bust),
     load<{ items: NewsItem[] }>('news', bust),
-    load<{ items: Country[] }>('countries', bust),
     load<{ weekly_trend: WeeklyTrend | null; items: Insight[] }>('insights', bust),
     load<Record<string, SourceInfo>>('sources', bust),
     load<Digest>('digest', bust),
@@ -42,13 +40,11 @@ export async function loadAll(): Promise<AppData> {
   return {
     meta,
     genres: genres.items,
-    artists: pick('artists', artists),
     tracks: pick('tracks', tracks),
     releases: pick('releases', releases),
     news: pick('news', news),
     labels: labels?.items ?? [],
     events: events?.items ?? [],
-    countries: pick('countries', countries),
     insights: insights ?? { weekly_trend: null, items: [] },
     sources: sources ?? {},
     digest,

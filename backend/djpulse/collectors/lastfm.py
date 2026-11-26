@@ -34,13 +34,6 @@ class LastFm:
         # В разных версиях ответа поле называется total или taggings.
         return {"reach": self._int(d.get("reach")), "taggings": self._int(d.get("total", d.get("taggings")))}
 
-    def tag_top_artists(self, tag: str, limit: int) -> list[dict]:
-        items = self._call("tag.gettopartists", tag=tag, limit=limit).get("topartists", {}).get("artist", [])
-        return [
-            {"name": a["name"], "mbid": a.get("mbid") or None, "url": a.get("url"), "rank": i + 1}
-            for i, a in enumerate(items) if a.get("name")
-        ]
-
     def tag_top_tracks(self, tag: str, limit: int) -> list[dict]:
         items = self._call("tag.gettoptracks", tag=tag, limit=limit).get("tracks", {}).get("track", [])
         out = []
@@ -70,20 +63,3 @@ class LastFm:
             "playcount": self._int(stats.get("playcount")),
             "tags": tags,
         }
-
-    def geo_top_artists(self, country: str, limit: int) -> list[dict]:
-        items = self._call("geo.gettopartists", country=country, limit=limit).get("topartists", {}).get("artist", [])
-        return [
-            {"name": a["name"], "mbid": a.get("mbid") or None, "listeners": self._int(a.get("listeners")), "rank": i + 1}
-            for i, a in enumerate(items) if a.get("name")
-        ]
-
-    def geo_top_tracks(self, country: str, limit: int) -> list[dict]:
-        items = self._call("geo.gettoptracks", country=country, limit=limit).get("tracks", {}).get("track", [])
-        out = []
-        for i, t in enumerate(items):
-            artist = t.get("artist") or {}
-            if t.get("name") and artist.get("name"):
-                out.append({"title": t["name"], "artist": artist["name"], "listeners": self._int(t.get("listeners")),
-                            "url": t.get("url"), "rank": i + 1})
-        return out

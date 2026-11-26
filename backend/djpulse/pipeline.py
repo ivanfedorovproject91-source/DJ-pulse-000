@@ -17,7 +17,7 @@ from . import config
 from .config import ELECTRONIC_TAGS
 from .analytics import insights as insights_mod
 from .analytics import trends
-from .collectors import deezer, lastfm, musicbrainz, rss, ticketmaster, wikipedia, youtube
+from .collectors import deezer, lastfm, musicbrainz, rss, ticketmaster, wikipedia
 from .digest import build_digest
 from .http import Http, SourceError
 from .store import History, SourceState, iso, read_json, utcnow, write_json
@@ -78,10 +78,8 @@ class Pipeline:
         self.hist = History(data / "history" / "history.json", self.settings.history_keep_days)
         self.state = SourceState(self.public / "sources.json")
         self.errors: list[str] = []
-        self.rejected_artists: set[str] = set()
         self.notes: list[str] = []   # информационные пометки (не сбои источников)
         self.lf = lastfm.LastFm(self.http, env["LASTFM_API_KEY"]) if env.get("LASTFM_API_KEY") else None
-        self.yt_key = env.get("YOUTUBE_API_KEY")
         self.tm_key = env.get("TICKETMASTER_API_KEY")
 
     # ---------- утилиты ----------
@@ -170,7 +168,6 @@ class Pipeline:
 
     # ---------- 2. Last.fm: жанры, артисты, треки ----------
     def step_lastfm_genres(self) -> None:
-        self.lf_tag_artists: dict[str, list[dict]] = {}
         self.lf_tag_tracks: dict[str, list[dict]] = {}
         if not self.lf:
             self.state.disabled("lastfm", "ключ LASTFM_API_KEY не задан — источник отключён")
@@ -184,7 +181,6 @@ class Pipeline:
                     ent = f"genre:{g.id}"
                     self.hist.put(ent, "lf_reach", self.today.isoformat(), info["reach"])
                     self.hist.put(ent, "lf_taggings", self.today.isoformat(), info["taggings"])
-                    self.lf_tag_artists[g.id] = self.lf.tag_top_artists(g.lastfm_tag, self.settings.top_artists_per_tag)
                     self.lf_tag_tracks[g.id] = self.lf.tag_top_tracks(g.lastfm_tag, self.settings.tracks_per_tag)
                     done += 1
                 except SourceError as exc:
@@ -193,358 +189,6 @@ class Pipeline:
         if done:
             self.state.ok("lastfm", None if done == len(self.genres) else f"частично: {done}/{len(self.genres)} жанров",
                           extra={"genres_loaded": done})
-
-    # ---------- 3. Deezer ----------
-    def step_deezer_chart(self) -> None:
-        self.dz_tracks: list[dict] = []
-        self.dz_artists: list[dict] = []
-        def work():
-            self.dz_tracks = deezer.chart_tracks(self.http)
-            try:
-                self.dz_artists = deezer.chart_artists(self.http) + deezer.genre_artists(self.http)
-            except SourceError as exc:
-                self.errors.append(f"deezer artists: {exc}")
-            rel = self._cache("dz_release.json")
-            for t in self.dz_tracks:
-                key = str(t["deezer_id"])
-                if key not in rel:
-                    try:
-                        rel[key] = deezer.track_release_date(self.http, t["deezer_id"]) or ""
-                    except SourceError:
-                        continue
-                t["release_date"] = rel.get(key) or None
-            self._save_cache("dz_release.json", rel)
-        self._guard("deezer", work)
-        if self.dz_tracks:
-            self.state.ok("deezer", extra={"tracks": len(self.dz_tracks)})
-
-    # ---------- 4. Реестр артистов ----------
-    def build_candidates(self) -> dict[str, dict]:
-        cands: dict[str, dict] = {}
-        def add(name, **kw):
-            k = norm(name)
-            if not k:
-                return
-            c = cands.setdefault(k, {"name": name, "score": 0, "lf_genres": set(), "mbid": None, "deezer_id": None})
-            c["score"] += kw.pop("w", 1)
-            if kw.get("genre"):
-                c["lf_genres"].add(kw["genre"])
-            for f in ("mbid", "deezer_id"):
-                if kw.get(f) and not c[f]:
-                    c[f] = kw[f]
-        for gid, arr in getattr(self, "lf_tag_artists", {}).items():
-            for a in arr:
-                add(a["name"], genre=gid, mbid=a.get("mbid"), w=max(1, 6 - a["rank"] // 5))
-        for a in getattr(self, "dz_artists", []):
-            add(a["name"], deezer_id=a["deezer_id"], w=2)
-        for t in getattr(self, "dz_tracks", []):
-            add(t["artist"], deezer_id=t.get("artist_deezer_id"), w=2)
-        for k, c in read_json(self.cache_dir / "ru_discovered.json", {}).items():
-            add(c["name"], mbid=c.get("mbid"), w=8)
-        # Ручной реестр (data/ru_registry.json): артисты, которых автор проекта знает и которым доверяет.
-        reg = read_json(self.data_dir / "ru_registry.json", {})
-        for item in (reg.get("artists") or []) if isinstance(reg, dict) else []:
-            name = item.get("name") if isinstance(item, dict) else item
-            if isinstance(name, str) and name.strip():
-                add(name.strip(), mbid=(item.get("mbid") if isinstance(item, dict) else None), w=12)
-        return cands
-
-    def step_discover_ru(self) -> None:
-        """Поиск российских артистов в MusicBrainz по стране RU и тегам жанров."""
-        cache = self._cache("ru_discovered.json")
-        def work():
-            gs = list(self.genres)
-            n = min(self.settings.mb_discover_genres_per_run, len(gs))
-            off = (self.today.toordinal() * n) % len(gs)
-            for g in [gs[(off + i) % len(gs)] for i in range(n)]:  # часть жанров за запуск, по кругу
-                found = musicbrainz.discover_by_country(self.http, "RU", g.mb_tag, 25)
-                for a in found:
-                    if a["score"] >= 70:
-                        cache.setdefault(norm(a["name"]), {"name": a["name"], "mbid": a["mbid"]})
-            self._save_cache("ru_discovered.json", cache)
-        self._guard("musicbrainz", work)
-
-    def step_artists(self) -> list[dict]:
-        cands = self.build_candidates()
-        top = sorted(cands.values(), key=lambda c: -c["score"])[: self.settings.max_registry_artists]
-        mb_cache = self._cache("mb_artists.json")
-        dz_cache = self._cache("dz_artists.json")
-        wiki_cache = self._cache("wiki_artist_titles.json")
-        budget = self.settings.mb_lookups_per_run  # новых MB-запросов за запуск; кэш накапливается между запусками
-        mb_fail = 0
-        artists: list[dict] = []
-        for c in top:
-            key = norm(c["name"])
-            mb = mb_cache.get(key)
-            if (mb is None or (mb and not mb.get("missing") and "ended" not in mb)) and budget > 0:
-                try:
-                    hit = musicbrainz.lookup_artist(self.http, c["mbid"]) if c["mbid"] else None
-                    if not hit:
-                        s = musicbrainz.search_artist(self.http, c["name"])
-                        hit = musicbrainz.lookup_artist(self.http, s["id"]) if s else None
-                    mb_cache[key] = hit or {"missing": True, "checked": self.today.isoformat()}
-                    mb = mb_cache[key]
-                    budget -= 1
-                except SourceError:
-                    mb_fail += 1
-                    if mb_fail >= 5:
-                        budget = 0
-            if mb and mb.get("missing"):
-                mb = None
-            artists.append({"cand": c, "mb": mb})
-        self._save_cache("mb_artists.json", mb_cache)
-        if mb_cache:
-            self.state.ok("musicbrainz", None if not mb_fail else f"частично: {mb_fail} ошибок",
-                          extra={"artists_cached": len(mb_cache)})
-
-        out = []
-        for item in artists:
-            c, mb = item["cand"], item["mb"]
-            name = (mb or {}).get("name") or c["name"]
-            aid = slugify(name)
-            a = {"id": aid, "name": name, "country": (mb or {}).get("country"), "country_source": "MusicBrainz" if mb and mb.get("country") else None,
-                 "mbid": (mb or {}).get("mbid") or c["mbid"], "links": dict((mb or {}).get("links") or {}),
-                 "tags": list((mb or {}).get("tags") or []), "ended": bool((mb or {}).get("ended")),
-                 "end_year": (mb or {}).get("end_year"), "_lf_genres": set(c["lf_genres"]), "deezer_id": c["deezer_id"],
-                 "photo": None, "metrics": {}, "sources": []}
-            out.append(a)
-        # Два имени-кандидата могут оказаться одним артистом в MusicBrainz — объединяем по mbid.
-        by_mbid: dict[str, dict] = {}
-        merged: list[dict] = []
-        for a in out:
-            if a["mbid"] and a["mbid"] in by_mbid:
-                first = by_mbid[a["mbid"]]
-                first["_lf_genres"] |= a["_lf_genres"]
-                first["deezer_id"] = first["deezer_id"] or a["deezer_id"]
-                continue
-            if a["mbid"]:
-                by_mbid[a["mbid"]] = a
-            merged.append(a)
-        out = merged
-        # дубликаты id
-        seen: dict[str, int] = {}
-        for a in out:
-            seen[a["id"]] = seen.get(a["id"], 0) + 1
-            if seen[a["id"]] > 1:
-                a["id"] = f"{a['id']}-{seen[a['id']]}"
-        self._dz_cache, self._wiki_cache = dz_cache, wiki_cache
-        return out
-
-    # ---------- 5. Метрики артистов ----------
-    def step_artist_metrics(self, artists: list[dict]) -> None:
-        day = self.today.isoformat()
-        # Last.fm
-        if self.lf:
-            ok = 0
-            def lf_all():
-                nonlocal ok
-                for a in artists:
-                    try:
-                        info = self.lf.artist_info(a["name"], a["mbid"])
-                    except SourceError as exc:
-                        self.errors.append(f"lastfm artist {a['name']}: {exc}"); continue
-                    if not info:
-                        continue
-                    ent = f"artist:{a['id']}"
-                    self.hist.put(ent, "lf_listeners", day, info["listeners"])
-                    self.hist.put(ent, "lf_playcount", day, info["playcount"])
-                    a["links"].setdefault("lastfm", info["url"])
-                    a["tags"] = list(dict.fromkeys(a["tags"] + info["tags"]))
-                    ok += 1
-            self._guard("lastfm_artists", lf_all)
-            self.state.data.pop("lastfm_artists", None)  # отдельной строкой не показываем
-            if ok:
-                self.state.ok("lastfm", extra={"artists_loaded": ok, "genres_loaded": self.state.data.get("lastfm", {}).get("genres_loaded")})
-        # Deezer (фанаты)
-        dzc = self._dz_cache
-        ok = 0
-        def dz_all():
-            nonlocal ok
-            for a in artists:
-                key = norm(a["name"])
-                info = None
-                try:
-                    if a["deezer_id"]:
-                        info = deezer.artist_by_id(self.http, a["deezer_id"])
-                    elif key in dzc:
-                        if dzc[key]:
-                            info = deezer.artist_by_id(self.http, dzc[key])
-                    else:
-                        found = deezer.find_artist(self.http, a["name"])
-                        dzc[key] = found["deezer_id"] if found else 0
-                        info = deezer.artist_by_id(self.http, found["deezer_id"]) if found else None
-                except SourceError:
-                    continue
-                if info:
-                    a["deezer_id"] = info["deezer_id"]
-                    a["photo"] = info.get("picture")
-                    a["links"].setdefault("deezer", info.get("url"))
-                    self.hist.put(f"artist:{a['id']}", "dz_fans", day, info.get("fans"))
-                    ok += 1
-        self._guard("deezer_artists", dz_all)
-        self.state.data.pop("deezer_artists", None)
-        self._save_cache("dz_artists.json", dzc)
-        if ok:
-            self.state.ok("deezer", extra={"tracks": len(self.dz_tracks), "artists_loaded": ok})
-        # YouTube
-        if self.yt_key:
-            ids, handles = {}, {}
-            for a in artists:
-                ref = youtube.parse_channel_ref(a["links"].get("youtube", "")) if a["links"].get("youtube") else None
-                if ref and ref[0] == "id":
-                    ids[ref[1]] = a
-                elif ref:
-                    handles[ref[1]] = a
-            yt_ok = 0
-            def yt_all():
-                nonlocal yt_ok
-                for cid, st in youtube.channels_by_id(self.http, self.yt_key, list(ids)).items():
-                    a = ids[cid]
-                    self.hist.put(f"artist:{a['id']}", "yt_subs", day, st["subscribers"])
-                    self.hist.put(f"artist:{a['id']}", "yt_views", day, st["views"])
-                    yt_ok += 1
-                for h, a in list(handles.items())[:60]:
-                    st = youtube.channel_by_handle(self.http, self.yt_key, h)
-                    if st:
-                        self.hist.put(f"artist:{a['id']}", "yt_subs", day, st["subscribers"])
-                        self.hist.put(f"artist:{a['id']}", "yt_views", day, st["views"])
-                        yt_ok += 1
-            self._guard("youtube", yt_all)
-            if yt_ok:
-                self.state.ok("youtube", extra={"channels": yt_ok})
-        else:
-            self.state.disabled("youtube", "ключ YOUTUBE_API_KEY не задан — источник отключён (необязательный)")
-        # Wikipedia: статьи артистов через Wikidata (кэшируются)
-        wc = self._wiki_cache
-        def wiki_all():
-            lookups = 40  # лимит новых запросов Wikidata за запуск
-            for a in artists:
-                key = a["mbid"] or norm(a["name"])
-                if key not in wc and lookups > 0 and a["links"].get("wikidata"):
-                    qid = musicbrainz.wikidata_id(a["links"])
-                    if qid:
-                        try:
-                            wc[key] = musicbrainz.wikidata_sitelinks(self.http, qid)
-                            lookups -= 1
-                        except SourceError:
-                            continue
-                titles = wc.get(key) or {}
-                title = titles.get("en")
-                if not title:
-                    continue
-                ent = f"artist:{a['id']}"
-                try:
-                    start, end = wikipedia.date_window(self.hist.last_day(ent, "wiki"), self.today, 120)
-                    self.hist.put_many(ent, "wiki", wikipedia.fetch_daily_views(self.http, title, start, end))
-                    a["links"].setdefault("wikipedia", f"https://en.wikipedia.org/wiki/{title.replace(' ', '_')}")
-                except SourceError as exc:
-                    self.errors.append(f"wikipedia artist {a['name']}: {exc}")
-        self._guard("wikipedia_artists", wiki_all)
-        self.state.data.pop("wikipedia_artists", None)
-        self._save_cache("wiki_artist_titles.json", wc)
-
-    # ---------- 6. Расчёты ----------
-    def compute_artists(self, artists: list[dict]) -> list[dict]:
-        th = self.settings.thresholds
-        end = self.today - timedelta(days=1)
-        genre_by_tag: dict[str, str] = {}
-        for g in self.genres:
-            genre_by_tag[norm(g.lastfm_tag)] = g.id
-            genre_by_tag[norm(g.mb_tag)] = g.id
-            genre_by_tag[norm(g.name)] = g.id
-
-        metric_defs = [("lf_listeners", "Last.fm", "listeners"), ("dz_fans", "Deezer", "fans"),
-                       ("yt_subs", "YouTube", "subscribers")]
-        # значения для перцентилей
-        pools: dict[str, dict[str, float]] = {"lf_listeners": {}, "dz_fans": {}, "yt_subs": {}, "wiki": {}}
-        for a in artists:
-            ent = f"artist:{a['id']}"
-            for m, _, _ in metric_defs:
-                s = self.hist.series(ent, m)
-                if s:
-                    pools[m][a["id"]] = s[max(s)]
-            w = trends.level_at(self.hist.series(ent, "wiki"), end, window=7, min_points=4)
-            if w is not None:
-                pools["wiki"][a["id"]] = w
-        ranks = {m: trends.percentile_ranks(v) for m, v in pools.items()}
-
-        result = []
-        for a in artists:
-            ent = f"artist:{a['id']}"
-            metrics, srcs, pr = {}, [], []
-            for m, label, _f in metric_defs:
-                s = self.hist.series(ent, m)
-                if not s:
-                    continue
-                last = max(s)
-                metrics[m] = {"value": s[last], "as_of": last, "source": label}
-                srcs.append(label)
-                if a["id"] in ranks[m]:
-                    pr.append(ranks[m][a["id"]])
-            wlvl = pools["wiki"].get(a["id"])
-            if wlvl is not None:
-                metrics["wiki_views_7d_avg"] = {"value": round(wlvl, 1), "as_of": end.isoformat(), "source": "Wikipedia"}
-                srcs.append("Wikipedia")
-                pr.append(ranks["wiki"][a["id"]])
-            # популярность = среднее перцентилей по доступным источникам (число источников показываем)
-            popularity = round(sum(pr) / len(pr), 1) if pr else None
-
-            # рост по сигналам
-            signals = []
-            for m, label, _ in metric_defs:
-                s = self.hist.series(ent, m)
-                g30 = trends.snapshot_growth(s, self.today, 30)
-                g90 = trends.snapshot_growth(s, self.today, 90)
-                if g30 is not None or g90 is not None:
-                    signals.append({"source": label, "metric": m, "d30": g30, "d90": g90})
-            ws = self.hist.series(ent, "wiki")
-            if ws:
-                ch = trends.changes(ws, end)
-                if ch["d30"] is not None or ch["d90"] is not None:
-                    signals.append({"source": "Wikipedia", "metric": "wiki", "d30": ch["d30"], "d90": ch["d90"]})
-            g30s = sorted(s["d30"] for s in signals if s["d30"] is not None)
-            g90s = sorted(s["d90"] for s in signals if s["d90"] is not None)
-            growth30 = g30s[len(g30s) // 2] if g30s else None  # медиана по источникам
-            growth90 = g90s[len(g90s) // 2] if g90s else None
-
-            rising = None
-            confirming = [s for s in signals if s["d30"] is not None and s["d30"] >= th.rising_artist_30d]
-            # «Растёт» только у действующих артистов и при заметном объёме интереса (иначе +300% от 3 просмотров — шум)
-            enough = (wlvl is not None and wlvl >= th.rising_artist_min_wiki_views) or any(
-                s["source"] != "Wikipedia" for s in confirming)
-            if (not a.get("ended") and enough and growth30 is not None and growth30 >= th.rising_artist_30d
-                    and len(confirming) >= th.rising_artist_min_signals):
-                parts = ", ".join(f"{s['source']} {s['d30']:+.0f}%" for s in confirming)
-                rising = {"reason": f"Рост за 30 дн. по: {parts}", "sources": sorted({s['source'] for s in confirming}),
-                          "n_signals": len(confirming)}
-
-            tagset = {norm(t) for t in a["tags"]}
-            gids = set(a["_lf_genres"]) | {genre_by_tag[t] for t in tagset if t in genre_by_tag}
-            hist_out = {}
-            for m in ("lf_listeners", "dz_fans", "yt_subs", "wiki"):
-                s = self.hist.series(ent, m)
-                if m == "wiki":
-                    cutoff = (self.today - timedelta(days=120)).isoformat()
-                    s = {d: v for d, v in s.items() if d >= cutoff}
-                if s:
-                    hist_out[m] = sorted(s.items())
-
-            if not metrics and not a["country"]:
-                continue  # о таком артисте нечего показать — не засоряем рейтинги
-            electronic = is_electronic(a["tags"], bool(a["_lf_genres"]))
-            if not electronic:
-                self.rejected_artists.add(norm(a["name"]))
-                continue  # поп/хип-хоп и т. п. — не электронная сцена, в рейтинги не берём
-            result.append({
-                "id": a["id"], "name": a["name"], "country": a["country"], "country_source": a["country_source"],
-                "genres": sorted(gids), "photo": a["photo"], "links": {k: v for k, v in a["links"].items() if v},
-                "metrics": metrics, "popularity": popularity, "n_sources": len(srcs), "sources": srcs,
-                "growth_30d": growth30, "growth_90d": growth90, "signals": signals, "rising": rising,
-                "ended": bool(a.get("ended")), "end_year": a.get("end_year"), "tags": a["tags"][:6],
-                "growth_sources": sorted({s["source"] for s in signals if s["d30"] is not None}),
-                "history": hist_out,
-            })
-        return result
 
     def compute_genres(self) -> list[dict]:
         end = self.today - timedelta(days=1)
@@ -571,50 +215,31 @@ class Pipeline:
         return out
 
     def compute_tracks(self) -> list[dict]:
+        """«Звучание жанра»: популярные за всё время треки по тегу Last.fm. Это не чарт — позиции и динамику не считаем."""
         day = self.today.isoformat()
-        tracks = []
-        for t in getattr(self, "dz_tracks", []):
-            tid = f"dz{t['deezer_id']}"
-            ent = f"track:{tid}"
-            self.hist.put(ent, "chart_pos", day, t["position"])
-            prev = prev_value(self.hist.series(ent, "chart_pos"), self.today)
-            tracks.append({
-                "id": tid, "title": t["title"], "artist": t["artist"], "cover": t["cover"], "url": t["url"],
-                "preview": t["preview"], "source": "deezer", "chart": "Deezer · Electro", "genre": None,
-                "chart_position": t["position"], "previous_position": prev,
-                "position_delta": (prev - t["position"]) if prev else None,
-                "release_date": t.get("release_date"), "as_of": day,
-                "history": sorted(self.hist.series(ent, "chart_pos").items())[-30:],
-            })
-        for gid, arr in getattr(self, "lf_tag_tracks", {}).items():
-            for t in arr:
-                tid = f"lf-{gid}-{slugify(t['title'])}-{slugify(t['artist'])}"[:90]
-                ent = f"track:{tid}"
-                self.hist.put(ent, f"tag_rank", day, t["rank"])
-                prev = prev_value(self.hist.series(ent, "tag_rank"), self.today)
-                tracks.append({
-                    "id": tid, "title": t["title"], "artist": t["artist"], "cover": None, "url": t["url"], "preview": None,
-                    "source": "lastfm", "chart": f"Last.fm · тег", "genre": gid, "chart_position": t["rank"],
-                    "previous_position": prev, "position_delta": (prev - t["rank"]) if prev else None,
-                    "release_date": None, "as_of": day,
-                    "history": sorted(self.hist.series(ent, "tag_rank").items())[-30:],
-                })
-        return tracks
+        return [{
+            "id": f"lf-{gid}-{slugify(t['title'])}-{slugify(t['artist'])}"[:90],
+            "title": t["title"], "artist": t["artist"], "cover": None, "url": t["url"], "preview": None,
+            "source": "lastfm", "genre": gid, "rank": t["rank"], "as_of": day,
+        } for gid, arr in getattr(self, "lf_tag_tracks", {}).items() for t in arr]
 
-    def filter_electronic_tracks(self, tracks: list[dict], artists: list[dict]) -> list[dict]:
-        """В треках по тегу жанра оставляем только артистов с электронными тегами. Неизвестных проверяем по Last.fm
-        (результат кэшируется), непроверенные пока не показываем — лучше пусто, чем поп-музыка в «Tech House»."""
-        accepted = {norm(a["name"]) for a in artists}
-        artist_genres = {norm(a["name"]): set(a.get("genres") or []) for a in artists}
+    def filter_electronic_tracks(self, tracks: list[dict]) -> list[dict]:
+        """Теги Last.fm ставят слушатели, поэтому в треки жанра попадает поп-музыка. Оставляем только исполнителей
+        с электронными тегами; трек в «Techno» — только от того, кого источники относят к Techno.
+        Исполнители проверяются по Last.fm, результат кэшируется. Непроверенные пока не показываем."""
+        genre_by_tag: dict[str, str] = {}
+        for g in self.genres:
+            for tag in (g.lastfm_tag, g.mb_tag, g.name):
+                genre_by_tag[norm(tag)] = g.id
         cache = self._cache("track_artist_class.json")
-        names = {}
+        names: dict[str, str] = {}
         for t in tracks:
             if t["source"] == "lastfm":
                 names.setdefault(norm(t["artist"]), t["artist"])
-        todo = [k for k in names if k not in accepted and k not in self.rejected_artists and k not in cache]
+        todo = [k for k in names if k not in cache]
         if self.lf and todo:
-            budget, fails = 400, 0
-            for k in todo[:budget]:
+            fails = 0
+            for k in todo[: self.settings.artist_class_lookups_per_run]:
                 try:
                     info = self.lf.artist_info(names[k], None)
                 except SourceError:
@@ -622,18 +247,14 @@ class Pipeline:
                     if fails >= 8:
                         break
                     continue
-                cache[k] = {"el": bool(info) and is_electronic(info.get("tags") or [], False)}
+                tags = (info or {}).get("tags") or []
+                cache[k] = {"el": bool(info) and is_electronic(tags, False),
+                            "g": sorted({genre_by_tag[norm(x)] for x in tags if norm(x) in genre_by_tag})}
             self._save_cache("track_artist_class.json", cache)
+
         def keep(t: dict) -> bool:
-            if t["source"] == "deezer":
-                return True
-            k = norm(t["artist"])
-            if k in self.rejected_artists:
-                return False
-            if k in accepted:
-                # Трек в «Techno» должен быть от артиста, которого источники относят к Techno, а не к соседнему жанру.
-                return not artist_genres.get(k) or t["genre"] in artist_genres[k]
-            return bool(cache.get(k, {}).get("el"))
+            e = cache.get(norm(t["artist"])) or {}
+            return bool(e.get("el")) and (not e.get("g") or t["genre"] in e["g"])
         return [t for t in tracks if keep(t)]
 
     def enrich_previews(self, tracks: list[dict]) -> None:
@@ -642,7 +263,7 @@ class Pipeline:
         поэтому кэш считается свежим около суток и обновляется при следующем запуске."""
         cands: dict[str, list[dict]] = {}
         per_genre: dict[str, int] = {}
-        for t in sorted((x for x in tracks if x["source"] == "lastfm"), key=lambda x: x["chart_position"]):
+        for t in sorted((x for x in tracks if x["source"] == "lastfm"), key=lambda x: x["rank"]):
             if per_genre.get(t["genre"], 0) >= self.settings.preview_per_genre:
                 continue
             per_genre[t["genre"]] = per_genre.get(t["genre"], 0) + 1
@@ -677,6 +298,10 @@ class Pipeline:
                     t["preview"] = e.get("preview")
                     t["deezer_id"] = e.get("deezer_id")
                     t["cover"] = t["cover"] or e.get("cover")
+        if fails and not used:
+            self.state.fail("deezer", "поиск превью временно недоступен")
+        elif used:
+            self.state.ok("deezer", extra={"previews_checked": used})
         keep = {k: v for k, v in cache.items() if k in cands}
         self._save_cache("track_previews2.json", keep)
         if fails:
@@ -703,8 +328,7 @@ class Pipeline:
             self.errors.append("musicbrainz releases: недоступно, оставлены прошлые данные")
             return prev
         if out:
-            self.state.ok("musicbrainz", extra={**{k: v for k, v in self.state.data.get("musicbrainz", {}).items()
-                                                  if k in ("artists_cached",)}, "releases": len(out)})
+            self.state.ok("musicbrainz", extra={"releases": len(out)})
         out.sort(key=lambda r: r["date"], reverse=True)
         # один релиз может попасть в несколько жанров — оставляем первое вхождение
         seen, uniq = set(), []
@@ -794,46 +418,6 @@ class Pipeline:
         items.sort(key=lambda i: i["published"], reverse=True)
         return items[: self.settings.news_max_items]
 
-    def compute_countries(self, artists: list[dict]) -> list[dict]:
-        out = []
-        gname = {g.id: g.name for g in self.genres}
-        by_norm = {norm(a["name"]): a for a in artists}
-        for c in config.COUNTRIES:
-            origin = [a for a in artists if a["country"] == c.code]
-            origin.sort(key=lambda a: -(a["popularity"] or -1))
-            gcount: dict[str, int] = {}
-            for a in origin:
-                for gid in a["genres"]:
-                    gcount[gid] = gcount.get(gid, 0) + 1
-            entry = {
-                "code": c.code, "name_ru": c.name_ru, "name_en": c.name_en,
-                "origin": {"source": "MusicBrainz (страна происхождения артиста)", "n_artists": len(origin),
-                           "n_rising": sum(1 for a in origin if a["rising"]),
-                           "top_artists": [a["id"] for a in origin[:10]],
-                           "rising_artists": [a["id"] for a in origin if a["rising"]][:10],
-                           "genres": sorted(({"genre": g, "name": gname.get(g, g), "count": n} for g, n in gcount.items()),
-                                            key=lambda x: -x["count"])[:8]},
-                "listeners": None,
-            }
-            if self.lf:
-                try:
-                    geo = self.lf.geo_top_artists(c.name_en, 50)
-                    matched = [by_norm[norm(x["name"])]["id"] for x in geo if norm(x["name"]) in by_norm]
-                    entry["listeners"] = {"source": "Last.fm (география СЛУШАТЕЛЕЙ)", "as_of": self.today.isoformat(),
-                                          "electronic_in_top50": matched,
-                                          "share_electronic_in_top50": round(100 * len(matched) / len(geo), 1) if geo else None,
-                                          "top_artists": [{"name": x["name"], "rank": x["rank"]} for x in geo[:10]]}
-                    gc: dict[str, int] = {}
-                    for aid in matched:
-                        for gid in next((a["genres"] for a in artists if a["id"] == aid), []):
-                            gc[gid] = gc.get(gid, 0) + 1
-                    entry["listeners"]["genres"] = sorted(({"genre": g, "name": gname.get(g, g), "count": n} for g, n in gc.items()),
-                                                         key=lambda x: -x["count"])[:8]
-                except SourceError as exc:
-                    self.errors.append(f"lastfm geo {c.code}: {exc}")
-            out.append(entry)
-        return out
-
     # ---------- смены статусов жанров ----------
     def update_status_log(self, genres: list[dict], prev: dict[str, str]) -> list[dict]:
         """Журнал смен статуса (Rising/Stable/…): нужен персональным уведомлениям.
@@ -868,30 +452,24 @@ class Pipeline:
 
     def run(self) -> dict:
         self.wiki_genre_titles = {}
-        self.dz_tracks, self.dz_artists = [], []
-        self.lf_tag_artists, self.lf_tag_tracks = {}, {}
+        self.lf_tag_tracks = {}
         self.step_wikipedia_genres()
         self.step_lastfm_genres()
-        self.step_deezer_chart()
-        self.step_discover_ru()
-        reg = self.step_artists()
-        self.step_artist_metrics(reg)
 
         prev_status = {g["id"]: g["status"] for g in read_json(self.public / "genres.json", {}).get("items", [])}
         genres = self.compute_genres()
-        artists = self.compute_artists(reg)
         tracks = self.compute_tracks()
-        # Теги Last.fm ставят слушатели, поэтому в «топ жанра» попадает поп-музыка. Убираем треки артистов, признанных неэлектронными.
-        tracks = self.filter_electronic_tracks(tracks, artists)
+        tracks = self.filter_electronic_tracks(tracks)
         self.enrich_previews(tracks)
         releases = self.step_releases()
         labels = self.compute_labels(releases)
         events = self.step_events()
         news = self.step_news()
-        countries = self.compute_countries(artists)
-        insights = insights_mod.build_insights(genres, artists, tracks, releases, self.today)
+        insights = insights_mod.build_insights(genres, releases, self.today)
         status_changes = self.update_status_log(genres, prev_status)
 
+        # YouTube использовался только для рейтинга артистов, который удалён.
+        self.state.data.pop("youtube", None)
         self.hist.prune(self.today)
         self.hist.save()
         self.state.save()
@@ -900,7 +478,7 @@ class Pipeline:
         crit_ok = self.state.data.get("wikipedia", {}).get("status") == "ok"
         # Разовые сбои отдельных запросов (503 MusicBrainz, один артист в Last.fm) не должны портить общий статус:
         # данные при этом берутся из накопленного кэша. Они остаются видны в заметках и на панели источников.
-        soft = [e for e in self.errors if e.startswith("lastfm artist ") or e.startswith("musicbrainz")]
+        soft = [e for e in self.errors if e.startswith("musicbrainz")]
         if soft and len(soft) < 25:
             self.errors = [e for e in self.errors if e not in soft]
             self.notes.extend(soft[:10])
@@ -910,7 +488,7 @@ class Pipeline:
         meta = {
             "schema": SCHEMA_VERSION, "generated_at": generated, "data_date": self.today.isoformat(), "status": status,
             "demo": False, "errors": self.errors[:40], "notes": self.notes[:80],
-            "counts": {"genres": len(genres), "artists": len(artists), "tracks": len(tracks),
+            "counts": {"genres": len(genres), "tracks": len(tracks),
                        "releases": len(releases), "news": len(news)},
             "history_days_max": max((g["history_days"] for g in genres), default=0),
         }
@@ -920,12 +498,10 @@ class Pipeline:
         if crit_ok or not (w / "genres.json").exists():
             write_json(w / "genres.json", {"generated_at": generated, "items": genres})
             write_json(w / "insights.json", {"generated_at": generated, **insights})
-        write_json(w / "artists.json", {"generated_at": generated, "items": artists}) if artists or not (w / "artists.json").exists() else None
         write_json(w / "tracks.json", {"generated_at": generated, "items": tracks}) if tracks or not (w / "tracks.json").exists() else None
         write_json(w / "releases.json", {"generated_at": generated, "items": releases})
         write_json(w / "news.json", {"generated_at": generated, "items": news})
         write_json(w / "labels.json", {"generated_at": generated, "items": labels})
         write_json(w / "events.json", {"generated_at": generated, "items": events})
-        write_json(w / "countries.json", {"generated_at": generated, "items": countries})
-        write_json(w / "digest.json", build_digest(meta, genres, artists, tracks, insights, status_changes))
+        write_json(w / "digest.json", build_digest(meta, genres, insights, status_changes))
         return meta

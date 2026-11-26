@@ -5,7 +5,7 @@ import { fmtDateTime, fmtDay } from '../services/format';
 import type { AppData } from '../types';
 import { Icon, Sheet } from './ui';
 
-export const TABS = ['dashboard', 'genres', 'djs', 'tracks', 'analytics'] as const;
+export const TABS = ['dashboard', 'genres', 'releases', 'analytics'] as const;
 export type Tab = (typeof TABS)[number];
 
 export function BottomNav({ active, onGo }: { active: Tab; onGo: (t: Tab) => void }) {
@@ -77,7 +77,7 @@ export function FreshnessBar({ data }: { data: AppData }) {
 export function SourcesList({ data }: { data: AppData }) {
   const { t, lang } = useI18n();
   const names: Record<string, string> = {
-    wikipedia: 'Wikipedia Pageviews', lastfm: 'Last.fm', deezer: 'Deezer', musicbrainz: 'MusicBrainz', youtube: 'YouTube Data API', ticketmaster: 'Ticketmaster (события)',
+    wikipedia: 'Wikipedia Pageviews', lastfm: 'Last.fm', deezer: 'Deezer', musicbrainz: 'MusicBrainz', ticketmaster: 'Ticketmaster (события)',
   };
   const entries = Object.entries(data.sources).filter(([, s]) => s.status !== 'disabled').sort(([a], [b]) => a.localeCompare(b));
   return (

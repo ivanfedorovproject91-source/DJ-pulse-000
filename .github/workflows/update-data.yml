@@ -40,7 +40,6 @@ jobs:
         working-directory: backend
         env:
           LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
           DJPULSE_REPO: https://github.com/${{ github.repository }}
         run: python run_update.py

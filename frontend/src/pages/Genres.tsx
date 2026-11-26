@@ -142,7 +142,7 @@ export default function Genres({ data, go }: Props) {
         <div className="panel">
           {list.length ? list.map((g) => (
             <GenreRow key={g.id} g={g} onOpen={() => go(`genres/${g.id}`)} fav={prefs.favGenres.includes(g.id)} onFav={() => toggleFav('favGenres', g.id)} />
-          )) : <Empty>{t('tracks.none')}</Empty>}
+          )) : <Empty>{t('notfound')}</Empty>}
         </div>
         <p className="note" style={{ marginBottom: 8 }}>{t('genres.count')}: {list.length}</p>
       </section>

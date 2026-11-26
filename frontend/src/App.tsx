@@ -4,12 +4,10 @@ import SearchSheet from './components/SearchSheet';
 import { BottomNav, DemoBanner, FreshnessBar, Topbar, type Tab, TABS } from './components/Shell';
 import { useBackButton, useRoute } from './hooks/useRoute';
 import Analytics, { type ATab } from './pages/Analytics';
-import ArtistDetail from './pages/ArtistDetail';
 import Dashboard from './pages/Dashboard';
-import Djs from './pages/Djs';
 import GenreDetail from './pages/GenreDetail';
 import Genres from './pages/Genres';
-import Tracks from './pages/Tracks';
+import Releases from './pages/Releases';
 import { loadAll, NoDataError } from './services/data';
 import { useI18n } from './services/i18n';
 import type { AppData } from './types';
@@ -18,7 +16,6 @@ type Load = { state: 'loading' } | { state: 'nodata' } | { state: 'error' } | { 
 
 function tabOf(parts: string[]): Tab {
   const [a] = parts;
-  if (a === 'artist') return 'djs';
   return (TABS as readonly string[]).includes(a) ? (a as Tab) : 'dashboard';
 }
 
@@ -39,7 +36,7 @@ export default function App() {
   const nested = parts.length > 1 && !(parts[0] === 'analytics' && parts.length === 2);
   useBackButton(nested, back);
 
-  const aTab = (['insights', 'world', 'labels', 'events', 'sources', 'settings'] as string[]).includes(parts[1]) ? (parts[1] as ATab) : 'insights';
+  const aTab = (['insights', 'labels', 'events', 'sources', 'settings'] as string[]).includes(parts[1]) ? (parts[1] as ATab) : 'insights';
   const goTab = (x: Tab) => { go(x === 'dashboard' ? '' : x); window.scrollTo({ top: 0 }); };
 
   return (
@@ -57,10 +54,8 @@ export default function App() {
           <DemoBanner />
           {tab === 'dashboard' && <FreshnessBar data={load.data} />}
           {parts[0] === 'genres' && parts[1] ? <GenreDetail data={load.data} id={parts[1]} go={go} />
-            : parts[0] === 'artist' && parts[1] ? <ArtistDetail data={load.data} id={parts[1]} go={go} />
             : tab === 'genres' ? <Genres data={load.data} go={go} />
-            : tab === 'djs' ? <Djs data={load.data} go={go} />
-            : tab === 'tracks' ? <Tracks data={load.data} />
+            : tab === 'releases' ? <Releases data={load.data} />
             : tab === 'analytics' ? <Analytics data={load.data} tab={aTab} setTab={(x) => go(`analytics/${x}`)} go={go} />
             : <Dashboard data={load.data} go={go} />}
           <footer className="credit">DJ PULSE · Создатель проекта Фёдоров Иван</footer>

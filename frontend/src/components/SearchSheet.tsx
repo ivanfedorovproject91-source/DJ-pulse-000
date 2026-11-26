@@ -12,12 +12,11 @@ export default function SearchSheet({ data, onClose, go }: { data: AppData; onCl
   const open = (h: Hit) => {
     onClose();
     if (h.kind === 'genre') go(`genres/${h.id}`);
-    else if (h.kind === 'artist') go(`artist/${h.id}`);
     else if (h.kind === 'label') go('analytics/labels');
     else if (h.url) openLink(h.url);
-    else go('tracks');
+    else go(`genres`);
   };
-  const kinds: Hit['kind'][] = ['genre', 'artist', 'label', 'track'];
+  const kinds: Hit['kind'][] = ['genre', 'label', 'track'];
   return (
     <Sheet title={t('search.title')} onClose={onClose}>
       <input className="input" type="search" autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('search.ph')} aria-label={t('search.title')} />
