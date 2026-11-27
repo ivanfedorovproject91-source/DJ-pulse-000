@@ -1797,5 +1797,89 @@
   "genre": "gqom",
   "name": "Gqom",
   "to": "declining"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "declining",
+  "genre": "minimal-house",
+  "name": "Minimal House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "rising",
+  "genre": "jackin-house",
+  "name": "Jackin House",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "stable",
+  "genre": "melodic-techno",
+  "name": "Melodic Techno",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "rising",
+  "genre": "industrial-techno",
+  "name": "Industrial Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "rising",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "stable",
+  "genre": "trance",
+  "name": "Trance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "stable",
+  "genre": "tech-trance",
+  "name": "Tech Trance",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "stable",
+  "genre": "two-step",
+  "name": "2-Step Garage",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "stable",
+  "genre": "grime",
+  "name": "Grime",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "emerging",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "stable",
+  "genre": "happy-hardcore",
+  "name": "Happy Hardcore",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-27",
+  "from": "stable",
+  "genre": "nu-disco",
+  "name": "Nu-Disco",
+  "to": "rising"
  }
 ]
