@@ -1881,5 +1881,103 @@
   "genre": "nu-disco",
   "name": "Nu-Disco",
   "to": "rising"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "rising",
+  "genre": "house",
+  "name": "House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "deep-house",
+  "name": "Deep House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "organic-house",
+  "name": "Organic House",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "rising",
+  "genre": "afro-house",
+  "name": "Afro House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "french-house",
+  "name": "French House",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "big-room-house",
+  "name": "Big Room House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "minimal-house",
+  "name": "Minimal House",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "emerging",
+  "genre": "jackin-house",
+  "name": "Jackin House",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "afro-tech",
+  "name": "Afro Tech",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "rising",
+  "genre": "melodic-techno",
+  "name": "Melodic Techno",
+  "to": "stable"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "schranz",
+  "name": "Schranz",
+  "to": "emerging"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "techstep",
+  "name": "Techstep",
+  "to": "rising"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "stable",
+  "genre": "breakcore",
+  "name": "Breakcore",
+  "to": "declining"
+ },
+ {
+  "date": "2026-11-28",
+  "from": "declining",
+  "genre": "lo-fi-house",
+  "name": "Lo-Fi House",
+  "to": "stable"
  }
 ]
